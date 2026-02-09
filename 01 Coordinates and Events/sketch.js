@@ -75,6 +75,7 @@ function drawCircle()
 
 function drawTable()
 {
+  noFill();
   stroke(10,10,100);
   rect(30,80,30,20);
 
