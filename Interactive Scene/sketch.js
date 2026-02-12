@@ -8,6 +8,9 @@
 let x = 20;
 let y = 300;
 
+let random_1 = random(0,200);
+let random_2 = random(100,200);
+
 function setup() {
   createCanvas(400, 400);
 }
@@ -22,14 +25,39 @@ function Mountain()
 }
 
 
+function drawsky()
+{
+  fill(255,255,255);
+  circle(x + 30, y - 120, 15);
+  circle(x + 18, y - 120, 15);
+  circle(x + 25, y - 127, 15);
+  
+  circle(x + 180, y - 200, 15);
+  circle(x + 192, y - 200, 15);
+  circle(x + 185, y - 207, 15);
+
+  circle(x + 300, y - 150, 15);
+  circle(x + 288, y - 150, 15);
+  circle(x + 293, y - 157, 15);
+
+
+  // ellipse(x + 30, y - 120, 30, 20);
+}
+
+
+
+function car()
+{
+  fill(0,0,0);
+  rect(300,290,30,13);
+
+}
 
 function draw() {
-  if(mouseIsPressed)
-    {
-      background(random(200));
-    }
-  
+  background(204,229,255);
   Mountain();
+  drawsky();
+  car();
   fill(0,255,0);
   ellipse(200, 400, 400, 200);
 }
