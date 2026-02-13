@@ -18,7 +18,7 @@ function setup() {
 
 function Mountain()
 {
-  fill(204, 255, 255);
+  fill(102, 255, 102);
   noStroke();
   triangle(x + 20,y + 45, x + 20, y - 100 ,x + 130,300);
   triangle(x + 40,y + 30, x + 80, y - 200 ,x + 200,y + 30);
@@ -48,9 +48,11 @@ function drawsky()
 
 function car()
 {
+  fill(205,204,204);
+  rect(300,280,30,13);
   fill(0,0,0);
-  rect(300,290,30,13);
-
+  circle(303,296,7);
+  circle(329,296,7);
 }
 
 function draw() {
@@ -58,6 +60,6 @@ function draw() {
   Mountain();
   drawsky();
   car();
-  fill(0,255,0);
-  ellipse(200, 400, 400, 200);
+  fill(204,255,204);
+  rect(0,300,400,250);
 }
