@@ -1,116 +1,155 @@
 // Project Title
 // Your Name
 // Date
-//
-// Extra for Experts:
-// In python - run- to- completion
 
-// p5js - we write interactive 
+let x = 20;
+let y = 300;
 
-// setup() -> we write once at the start
-// draw() -> runs over and over (after setup)
+let x_1 = 300; // Car position
+let mouthHeight = 0; // Mouth curvature
 
-// screen is updated at the bottom of draw
+// 背景颜色数组
+let backgroundColors = [ [180, 210, 230], [250, 200, 200], [200, 250, 200], [200, 200, 250], [255, 255, 180] ];
+let currentBgIndex = 0; 
 
-
-//    ------  Global variable section -------
-
-// simple data types
-
-
-let stickmanX = 200; // Initial X position of the stickman
-let stickmanY = 270; // Standing Y position of the stickman
-let backgroundColors = [ [180, 210, 230], [250, 200, 200], [200, 250, 200], [200, 200, 250], [255, 255, 180]  ];
-let currentBgIndex = 0; // Current background index
+// 汽车颜色 (新增变量，用于键盘互动)
+let carColor;
 
 function setup() {
-  createCanvas(600, 400);
+  createCanvas(400, 400);
+  carColor = color(205, 204, 204); // 初始汽车颜色 (灰色)
 }
 
+function Mountain() {
+  // 为了防止山受到后面 fill 的影响，我们在函数里明确设置颜色
+  push(); 
+  fill(102, 255, 102);
+  noStroke();
+  triangle(x ,y + 45, x + 20, y - 100 ,x + 130,300);
 
-// Function to draw mountains
-function drawMountain(x1, y1, x2, y2, x3, y3, col) {
-  fill(col);
   stroke(30, 60, 90);
-  triangle(x1, y1, x2, y2, x3, y3);
+  fill(102, 255, 102); // 确保第二个山也是绿的
+  triangle(x + 40,y + 30, x + 80, y - 200 ,x + 200,y + 30);
+  triangle(x + 60, y + 30, x + 200, y - 250,x + 300, y + 30);
+  pop();
 }
 
-
-function draw() {
-  // Set background color
-  background(backgroundColors[currentBgIndex]);
-
-  // Draw sun / moon
-  fill(255, 230, 180);
+function drawsky() {
+  push();
+  fill(255,255,255);
   noStroke();
-  ellipse(100, 80, 60, 60);
-
-  // Draw distant mountains
-  drawMountain(100, 300, 250, 120, 400, 300, color(80, 120, 160)); 
-  drawMountain(200, 300, 350, 100, 500, 300, color(60, 100, 140));
-  drawMountain(300, 300, 450, 140, 600, 300, color(50, 90, 130));
-
-  // Draw foreground mountains
-  drawMountain(50, 300, 200, 80, 350, 300, color(40, 80, 120));
-  drawMountain(250, 300, 400, 90, 550, 300, color(30, 70, 110));
-
-  // Draw snowy ground
-  fill(220, 240, 255);
-  rect(0, 300, width, 100);
-
-  // Draw clouds
-  drawCloud(200, 80)
-  drawCloud(300, 100)
-  drawCloud(390, 100);
-  drawCloud(460, 120);
-  drawCloud(520, 90);
-
-
-
-  // Draw stickman
-  man(stickmanX, stickmanY);
-  fill('limegreen');
-  text('Junyu', 520, 390);
+  circle(x + 30, y - 120, 15);
+  circle(x + 18, y - 120, 15);
+  circle(x + 25, y - 127, 15);
+  
+  circle(x + 180, y - 200, 15);
+  circle(x + 192, y - 200, 15);
+  
+  circle(x + 300, y - 150, 15);
+  circle(x + 288, y - 150, 15);
+  pop();
 }
 
+function car_and_person(move_1, move_2) {
+  push(); // 隔离样式
+  
+  // 1. 画车 (使用 carColor 变量)
+  fill(carColor); 
+  rect(move_1, move_2 - 16, 30, 13);
+  
+  // 车轮
+  fill(0);
+  circle(move_1 + 3, move_2, 7);
+  circle(move_1 + 29, move_2, 7);
 
-
-// Function to draw clouds
-function drawCloud(x, y) {
-  fill(255);
-  noStroke();
-  ellipse(x, y, 40, 30);
-  ellipse(x + 20, y - 10, 40, 30);
-  ellipse(x + 40, y, 40, 30);
-  ellipse(x + 20, y + 10, 40, 30);
-}
-
-
-// Function to draw stickman
-function man(x, y) {
+  // 2. 画人
   stroke(0);
   strokeWeight(2);
   fill(255);
-  ellipse(x, y - 20, 20, 20); // Head
-  line(x, y - 10, x, y + 30); // Body
-  line(x - 15, y + 10, x + 15, y + 10); // Arms
-  line(x, y + 30, x - 10, y + 50); // Left leg
-  line(x, y + 30, x + 10, y + 50); // Right leg
+  ellipse(move_1 + 13, move_2 - 50, 20, 20); // Head
+  line(move_1 + 13, move_2 - 40, move_1 + 13, move_2 - 25); // Body
+  line(move_1 + 3, move_2 - 30, move_1 + 24, move_2 - 30); // Arms
+  line(move_1 + 13, move_2 - 25, move_1 + 3, move_2 - 15); // Left leg
+  line(move_1 + 13, move_2 - 25, move_1 + 23, move_2 - 15); // Right leg
+  
+  // 眼睛
   fill(0);
-  ellipse(x - 5, y - 22, 3, 3); // Left eye
-  ellipse(x + 5, y - 22, 3, 3); // Right eye
-  noFill();
-  arc(x, y - 18, 10, 5, 0, PI); // Smile
-}
-
-// control stickman left and right
-function mouseMoved() {
-  stickmanX = constrain(mouseX, 10, width - 10); // Prevents stickman from going off screen
-}
-
-// keyboard events, press LEFT ARROW to change background color
-function keyPressed() {
-  if (keyCode === LEFT_ARROW) {
-    currentBgIndex = (currentBgIndex + 1) % backgroundColors.length; // Cycle through 5 colors
+  noStroke();
+  // 简单的眨眼效果 (如果点击鼠标左键)
+  if (mouseIsPressed && mouseButton === LEFT) {
+      rect(move_1 + 6, move_2 - 53, 4, 2);
+      rect(move_1 + 16, move_2 - 53, 4, 2);
+  } else {
+      ellipse(move_1 + 8, move_2 - 52, 3, 3); 
+      ellipse(move_1 + 18, move_2 - 52, 3, 3); 
   }
+
+  // 嘴巴 (修复了之前的逻辑 Bug)
+  noFill();
+  stroke(0);
+  if (mouthHeight > 0) {
+    // 向上弯 (笑)
+    arc(move_1 + 13, move_2 - 46, 10, mouthHeight, 0, PI);
+  } else if (mouthHeight < 0) {
+    // 向下弯 (难过) - 此时 mouthHeight 是负数，用 abs 取绝对值
+    arc(move_1 + 13, move_2 - 42, 10, abs(mouthHeight), PI, 0);
+  } else {
+    // 0 的时候 (直线)
+    line(move_1 + 8, move_2 - 46, move_1 + 18, move_2 - 46);
+  }
+  
+  pop();
+}
+
+// ---------------- 互动部分 ----------------
+
+// 1. 鼠标滚轮控制嘴巴 (Mouse Interaction 1)
+function mouseWheel(event) {
+  if (event.delta > 0) {
+    mouthHeight -= 2; // 向下滚，变难过
+  } else {
+    mouthHeight += 2; // 向上滚，变开心
+  }
+  mouthHeight = constrain(mouthHeight, -10, 10);
+  return false; // 防止网页滚动
+}
+
+// 2. 鼠标点击检测 (Mouse Interaction 2: Middle Button)
+function mousePressed() {
+  // 需求修复：使用中键 (滑轮按下) 切换背景
+  if (mouseButton === CENTER) {
+    currentBgIndex = (currentBgIndex + 1) % backgroundColors.length;
+  }
+}
+
+// 3. 键盘按键检测 (Keyboard Interaction: Spacebar) -> 新增功能！
+function keyPressed() {
+  // 按下空格键改变车身颜色
+  if (key === ' ') {
+    // 随机生成一个颜色
+    carColor = color(random(255), random(255), random(255));
+  }
+}
+
+function draw() {
+  // 每一帧都更新 x_1 的位置跟随鼠标
+  x_1 = constrain(mouseX, 10, width - 40); 
+  
+  background(backgroundColors[currentBgIndex]);
+  
+  Mountain();
+  drawsky();
+  
+  // 传入 x_1 和 固定的 y (300)
+  car_and_person(x_1, 300);
+  
+  // 地面
+  fill(204, 255, 204);
+  noStroke();
+  rect(0, 307, 400, 100);
+  
+  fill(0);
+  text('Junyu', 320, 350);
+  text('Middle Click: Change BG', 10, 380);
+  text('Spacebar: Change Car Color', 10, 360);
 }
