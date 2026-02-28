@@ -1,14 +1,16 @@
-// Project Title
-// Your Name
-// Date
+// Interactive Scene
+// Junyu Tang
+// February 27, 2026
 //
 // Extra for Experts:
-// - describe what you did to take this project "above and beyond"
+// - I added a feature where the user can change the background color by clicking the middle mouse button or pressing the spacebar.
+// - I also added a feature where the user can change the car color by pressing the 'C' key.
+// - The character's mouth changes based on mouse wheel input, allowing for a smile, frown, or neutral expression.
 
-let x = 20;
+let x = 20; // Starting x position for the mountains and sky elements
 let y = 300;
 
-let x_2 = 296;
+let x_2 = 296;// Starting y position for the car and person
 let x_1 = 300;
 
 let mouthHeight = 0;
@@ -39,10 +41,10 @@ function Mountain()
 function drawsky()
 {
   push();
-
+  // Cloud 
   fill(255,255,255);
   noStroke();
-  circle(x + 30, y - 120, 15);
+  circle(x + 30, y - 120, 15); 
   circle(x + 18, y - 120, 15);
   circle(x + 25, y - 127, 15);
   
@@ -71,10 +73,10 @@ function car_and_person(move_1,move_2)
 {
   push();
   fill(carColor);
-  rect(move_1,move_2 - 16,30,13);
+  rect(move_1,move_2 - 16,30,13); // Car body
   fill(0,0,0);
-  circle(move_1 + 3,move_2,7);
-  circle(move_1 + 29,move_2,7);
+  circle(move_1 + 3,move_2,7); // Left wheel
+  circle(move_1 + 29,move_2,7); // Right wheel
 
   stroke(0);
   strokeWeight(2);
@@ -123,12 +125,12 @@ function car_and_person(move_1,move_2)
 
 function mouseWheel(event)
 {
-  if(event.delta > 0)
+  if(event.delta > 0) // Scroll down
   {
     mouthHeight -= 2;
   }
 
-  if(event.delta < 0)
+  if(event.delta < 0) // Scroll up
   {
     mouthHeight += 2;
   }
@@ -159,7 +161,7 @@ function keyPressed() {
 
 function draw() {
 
-  x_1 = constrain(mouseX, 10, width - 10);
+  x_1 = constrain(mouseX, 10, width - 10); // Constrain the car's x position to stay within the canvas
 
   background(backgroundColors[currentBgIndex]);
   Mountain();
