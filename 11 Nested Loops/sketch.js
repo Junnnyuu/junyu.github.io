@@ -23,6 +23,11 @@ function drawBubble()
   //through our array and display
   //a bubble at each pos;
   //possible delete, if moves it close
+
+  for(let b of bubbles)
+  {
+    circle(b.x)
+  }
 }
 function generatePoints()
 {

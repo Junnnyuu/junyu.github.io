@@ -22,12 +22,11 @@ function draw() {
 
 function generateTerrain()
 {
-  for (let x = 0; x < width; x += changeValue)
+  for (let x = 0; x < width; x ++)
   {
-    let y = noise(x/100 + t) * height;
+    let y = noise(x*0.01, t) * height;
     rect(x, y, 1, height - y);
   }
-  t += 0.01;
 }
 
 
@@ -35,12 +34,12 @@ function  keyPressed()
 {
   generateTerrain();
 
-  if(key == "left")
+  if(key === "left")
   {
-    changeValue -= 0.5;
+    t -= 0.5;
   }
-  if(key == "right")
+  if(key === "right")
   {
-    changeValue += 0.5;
+    t += 0.5;
   }
 }
