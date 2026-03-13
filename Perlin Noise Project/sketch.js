@@ -25,6 +25,7 @@ function generateTerrain()
   for (let x = 0; x < width; x ++)
   {
     let y = noise(x*0.01, t) * height;
+    
     rect(x, y, 1, height - y);
   }
 }
