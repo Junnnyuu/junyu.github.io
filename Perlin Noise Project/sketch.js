@@ -18,6 +18,7 @@ function setup() {
 function draw() {
   background(220);
   generateTerrain();
+  t += 0.04;
 }
 
 
@@ -29,25 +30,36 @@ function generateTerrain()
   let highestX = 0;
   let highestY = 0;
 
+  let totalHeight = 0; 
+  let count = 0;
+
   for (let x = 0; x < width; x+=changeValue)
   {
-    let y = noise(x*0.02) * height;
+    let y = noise(x*0.02 + t) * height;
+    let rectHeight = height - y;
     
-    rect(x, y, changeValue, height - y);
+    fill(0,0,0);
+    rect(x, y, changeValue, rectHeight);
 
-    if (height - y > highestHeight)
+    if (rectHeight > highestHeight)
     {
-      highestHeight = height - y;
+      highestHeight = rectHeight;
       highestX = x + changeValue/2;
       highestY = y;
     }
+
+    totalHeight += rectHeight; 
+    count++;
   }
 
   drawFlag(highestX, highestY - 5);
 
-
-
-
+  // Draw average height band
+  let avgHeight = totalHeight / count;
+  let avgY = height - avgHeight;
+  fill(255,0,0);
+  noStroke();
+  rect(0, avgY - 2, width, 3); // Draw a horizontal band
 
 }
 
@@ -70,6 +82,11 @@ function  keyPressed()
 
 function drawFlag(x,y)
 {
-  line(x, y, x, y+10);
-  triangle(x, y, x, y-6, x+5, y-3);
+  fill(0,0,0);
+  triangle(x, y + 1, x, y-6, x+6, y-3);
+
+  fill(0,0,0);
+  stroke(0, 0, 0);
+  strokeWeight(2);
+  line(x, y - 5, x, y + 5);
 }
