@@ -8,37 +8,68 @@
 let car;
 let trafficLight;
 
+let eastbound = [];
+let westbound = [];
+
+
 function setup() {
   createCanvas(600,400);
+
+  for(let i = 0; i < 5; i++)
+  {
+    let y = random(10,120);
+    let xSpeed = random(1,3);
+    eastbound.push(new Vehicle(random(0,width), y, 1, xSpeed));
+  }
+
+  for(let i = 0; i < 5; i++)
+  {
+    let y = random(230,320);
+    let xSpeed = random(1,3);
+    westbound.push(new Vehicle(random(0,width), y, 0, xSpeed));
+  }
 }
 
 function draw() {
   background(200);
   drawRoad();
+
+
+  for (let vehicle of eastbound) {
+    vehicle.action(); // Perform vehicle behavior
+  }
+
+  // Update westbound vehicles
+  for (let vehicle of westbound) {
+    vehicle.action(); // Perform vehicle behavior
+  }
 }
 
 function drawRoad()
 {
   noStroke();
   fill(0);
-  rect(0,50, 600, 300);
+  rect(0,0, width, height);
 
   stroke('magenta');
   strokeWeight(3);
   for(let i = 0; i < width; i+=40)
   {
-    line(i, 200, i + 20, 200);
+    line(i, height / 2, i + 20, height / 2);
   }
 }
 
 class Vehicle
 {
-  constructor(x,y,direction)
+  constructor(x,y,direction,xSpeed)
   {
     this.x = x;
     this.y = y;
-    this.type = type;
+    this.type = direction;
     this.direction = direction;
+    this.xSpeed = xSpeed;
+    this.width = 30;
+    this.height = 15;
     this.color = color(random(255), random(255), random(255));
   }
 
@@ -65,10 +96,8 @@ class Vehicle
       let wheelR = 2;
       let wheelY = this.height / 2 + wheelR;
 
-      ellipse(-this.width / 3, wheelY, wheelR * 2, wheelR * 2);
-      ellipse(-this.width / 6, wheelY, wheelR * 2, wheelR * 2);
-      ellipse(-this.width / 3, wheelY, wheelR * 2, wheelR * 2);
-      ellipse(-this.width / 6, wheelY, wheelR * 2, wheelR * 2);
+      ellipse(this.width / 3, wheelY, wheelR * 3, wheelR * 2);
+      ellipse(-this.width / 3, wheelY, wheelR * 3, wheelR * 2);
     }
 
 
@@ -78,10 +107,10 @@ class Vehicle
       stroke(255);
       strokeWeight(1);
 
-      let lineX = lx;
+      let lineX = -this.width / 2 + 5;
       if(this.direction === 1)
       {
-        let lx = this.width / 2 -5;
+        lineX = this.width / 2 - 5;
       }
 
       line(lineX, -this.height / 2, lineX, this.height / 2);
@@ -92,7 +121,8 @@ class Vehicle
 
   move()
   {
-    if(this/x > width + this.width / 2)
+    this.x += this.xSpeed * this.direction ? 1 : -1;
+    if(this.x > width + this.width / 2)
     {
       this.x = -this.width / 2;
     }
@@ -113,9 +143,7 @@ class Vehicle
 
   action()
   {
-
     this.move();
     this.display();
-
   }
 }
