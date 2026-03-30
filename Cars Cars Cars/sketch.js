@@ -15,17 +15,17 @@ let westbound = [];
 function setup() {
   createCanvas(600,400);
 
-  for(let i = 0; i < 5; i++)
+  for(let i = 0; i < 10; i++)
   {
     let y = random(10,120);
-    let xSpeed = random(1,3);
+    let xSpeed = random(1,5);
     eastbound.push(new Vehicle(random(0,width), y, 1, xSpeed));
   }
 
-  for(let i = 0; i < 5; i++)
+  for(let i = 0; i < 10; i++)
   {
     let y = random(230,320);
-    let xSpeed = random(1,3);
+    let xSpeed = random(1,10);
     westbound.push(new Vehicle(random(0,width), y, 0, xSpeed));
   }
 }
