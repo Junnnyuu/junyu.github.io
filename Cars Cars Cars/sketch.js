@@ -11,18 +11,20 @@ let trafficLight;
 let eastbound = [];
 let westbound = [];
 
+let addDownCar = 1;
 
 function setup() {
   createCanvas(600,400);
 
-  for(let i = 0; i < 10; i++)
+  let add_down_Car = addDownCar;
+  for(let i = 0; i < add_down_Car; i++)
   {
     let y = random(10,120);
     let xSpeed = random(1,5);
     eastbound.push(new Vehicle(random(0,width), y, 1, xSpeed));
   }
 
-  for(let i = 0; i < 10; i++)
+  for(let i = 0; i < add_down_Car; i++)
   {
     let y = random(230,320);
     let xSpeed = random(1,10);
@@ -69,7 +71,7 @@ class Vehicle
     this.direction = direction;
     this.xSpeed = xSpeed;
     this.width = 30;
-    this.height = 15;
+    this.height = 20;
     this.color = color(random(255), random(255), random(255));
   }
 
@@ -146,4 +148,23 @@ class Vehicle
     this.move();
     this.display();
   }
+}
+
+
+
+// Use left and right arrow keys to adjust the addDownCar
+function keyPressed()
+{
+  if(keyCode === LEFT_ARROW)
+  {
+    addDownCar -= 1;
+
+   
+  }
+  if(keyCode === RIGHT_ARROW)
+  {
+    addDownCar += 1;
+
+  }
+
 }
