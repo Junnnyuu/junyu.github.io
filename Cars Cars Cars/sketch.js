@@ -11,24 +11,23 @@ let trafficLight;
 let eastbound = [];
 let westbound = [];
 
-let addDownCar = 1;
+let addDownCar = 2;
+let lastAddDownCar = 2;
 
 function setup() {
-  createCanvas(600,400);
+  createCanvas(600, 400);
 
   let add_down_Car = addDownCar;
-  for(let i = 0; i < add_down_Car; i++)
-  {
-    let y = random(10,120);
-    let xSpeed = random(1,5);
-    eastbound.push(new Vehicle(random(0,width), y, 1, xSpeed));
+  for (let i = 0; i < add_down_Car; i++) {
+    let y = random(10, 120);
+    let xSpeed = random(1, 5);
+    eastbound.push(new Vehicle(random(0, width), y, 1, xSpeed));
   }
 
-  for(let i = 0; i < add_down_Car; i++)
-  {
-    let y = random(230,320);
-    let xSpeed = random(1,10);
-    westbound.push(new Vehicle(random(0,width), y, 0, xSpeed));
+  for (let i = 0; i < add_down_Car; i++) {
+    let y = random(230, 320);
+    let xSpeed = random(1, 10);
+    westbound.push(new Vehicle(random(0, width), y, 0, xSpeed));
   }
 }
 
@@ -36,35 +35,30 @@ function draw() {
   background(200);
   drawRoad();
 
-
-  for (let vehicle of eastbound) {
-    vehicle.action(); // Perform vehicle behavior
+  for (let i = 0; i < eastbound.length; i++) {
+    eastbound[i].action(); // Perform vehicle behavior
   }
 
   // Update westbound vehicles
-  for (let vehicle of westbound) {
-    vehicle.action(); // Perform vehicle behavior
+  for (let i = 0; i < westbound.length; i++) {
+    westbound[i].action(); // Perform vehicle behavior
   }
 }
 
-function drawRoad()
-{
+function drawRoad() {
   noStroke();
   fill(0);
-  rect(0,0, width, height);
+  rect(0, 0, width, height);
 
   stroke('magenta');
   strokeWeight(3);
-  for(let i = 0; i < width; i+=40)
-  {
+  for (let i = 0; i < width; i += 40) {
     line(i, height / 2, i + 20, height / 2);
   }
 }
 
-class Vehicle
-{
-  constructor(x,y,direction,xSpeed)
-  {
+class Vehicle {
+  constructor(x, y, direction, xSpeed) {
     this.x = x;
     this.y = y;
     this.type = direction;
@@ -76,24 +70,21 @@ class Vehicle
   }
 
 
-  display()
-  {
+  display() {
     push();
-    translate(this.x,this.y);
+    translate(this.x, this.y);
 
-    if(this.direction === 0)
-    {
-      scale(-1,1);
+    if (this.direction === 0) {
+      scale(-1, 1);
     }
 
 
     fill(this.color);
     noStroke();
-    rect(-this.width/2, - this.height / 2, this.width, this.height);
+    rect(-this.width / 2, - this.height / 2, this.width, this.height);
 
 
-    if(this.type === 0)
-    {
+    if (this.type === 0) {
       fill(200);
       let wheelR = 2;
       let wheelY = this.height / 2 + wheelR;
@@ -104,14 +95,12 @@ class Vehicle
 
 
 
-    else
-    {
+    else {
       stroke(255);
       strokeWeight(1);
 
       let lineX = -this.width / 2 + 5;
-      if(this.direction === 1)
-      {
+      if (this.direction === 1) {
         lineX = this.width / 2 - 5;
       }
 
@@ -121,50 +110,85 @@ class Vehicle
     pop();
   }
 
-  move()
-  {
-    this.x += this.xSpeed * this.direction ? 1 : -1;
-    if(this.x > width + this.width / 2)
-    {
+
+
+
+  move() {
+    this.x += this.xSpeed * (this.direction ? 1 : -1);
+    if (this.x > width + this.width / 2) {
       this.x = -this.width / 2;
     }
 
-    else if(this.x < -this.width / 2)
-    {
+    else if (this.x < -this.width / 2) {
       this.x = width + this.width / 2;
     }
 
   }
 
-  speedUp()
-  {
+
+
+
+
+  speedUp() {
+    this.xSpeed += 0.5;
+    if (this.xSpeed > 10) this.xSpeed = 10;
+  }
+
+
+
+
+
+  changeColor() {
+    this.color = color(random(255), random(255), random(255));
+  }
+
+
+
+  speedDown() {
     this.xSpeed -= 0.5;
     if (this.xSpeed < 0) this.xSpeed = 0;
   }
 
 
-  action()
-  {
+
+
+  action() {
     this.move();
     this.display();
+    if (Math.random() < 0.01) {
+      this.speedUp();
+    }
+
+    
+    if (Math.random() < 0.01) {
+      this.speedDown();
+    }
+
+    if (Math.random() < 0.01) {
+      this.changeColor();
+    }
   }
 }
 
-
-
-// Use left and right arrow keys to adjust the addDownCar
-function keyPressed()
-{
-  if(keyCode === LEFT_ARROW)
-  {
-    addDownCar -= 1;
-
-   
-  }
-  if(keyCode === RIGHT_ARROW)
-  {
+function mousePressed() {
+  if (mouseButton === LEFT && keyIsDown(SHIFT)) {
     addDownCar += 1;
+    // Add new vehicles to eastbound
+    let y = random(10, 120);
+    let xSpeed = random(1, 5);
 
+    // Add new vehicles to westbound
+    y = random(230, 320);
+    xSpeed = random(1, 10);
+    westbound.push(new Vehicle(random(0, width), y, 0, xSpeed));
+  }
+  else if (mouseButton === LEFT) {
+    addDownCar += 1;
+    // Add new vehicles to eastbound
+    let y = random(10, 120);
+    let xSpeed = random(1, 2);
+    eastbound.push(new Vehicle(random(0, width), y, 1, xSpeed));
   }
 
+  return false;
 }
