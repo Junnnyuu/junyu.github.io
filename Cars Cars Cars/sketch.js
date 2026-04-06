@@ -91,18 +91,18 @@ class Vehicle
     push();
     translate(this.x, this.y);
 
-    if (this.direction === 1) 
+    if (this.direction === 1) // Westbound vehicles face left, so flip horizontally
     {
       scale(-1, 1);
     }
 
-    if (this.type === 0) 
+    if (this.type === 0) // Type 0 is a car
     {
       this.drawCar();
   
     }
 
-    else if (this.type === 1) 
+    else if (this.type === 1)  // Type 1 is a truck
     {
       this.drawTruck();
     }
@@ -115,13 +115,13 @@ class Vehicle
   {
     fill(this.color);
     noStroke();
-    rect(-this.width / 2, - this.height / 2, this.width, this.height);
+    rect(-this.width / 2, - this.height / 2, this.width, this.height); // Car body
 
     fill(200);
-    let wheelR = 2;
+    let wheelR = 2; // Wheel radius
     let wheelY = this.height / 2 + wheelR;
 
-    ellipse(this.width / 3, wheelY, wheelR * 3, wheelR * 2);
+    ellipse(this.width / 3, wheelY, wheelR * 3, wheelR * 2); // Front wheel
     ellipse(-this.width / 3, wheelY, wheelR * 3, wheelR * 2);
 
   }
@@ -131,12 +131,12 @@ class Vehicle
   {
     fill(this.color);
     noStroke();
-    rect(-this.width / 2, - this.height / 2, this.width, this.height);
+    rect(-this.width / 2, - this.height / 2, this.width, this.height); // Truck body
 
     stroke(255);
     strokeWeight(1);
 
-    let lineX;
+    let lineX; //
     lineX = this.width / 2 - 5;
     line(lineX, -this.height / 2, lineX, this.height / 2);
   }
@@ -149,19 +149,19 @@ class Vehicle
 
   move() 
   {
-    if (this.direction === 2)
+    if (this.direction === 2) // Eastbound
     {
       this.x += this.xSpeed;
     } 
     
 
-    else if (this.direction === 1) 
+    else if (this.direction === 1) // Westbound
     {
       this.x -= this.xSpeed;
     }
 
 
-    if (this.x > width + this.width / 2) 
+    if (this.x > width + this.width / 2) // If vehicle goes off the right edge, wrap to left
     {
       this.x = -this.width / 2;
     } 
@@ -178,7 +178,7 @@ class Vehicle
   speedUp() 
   {
     this.xSpeed += 0.5;
-    if (this.xSpeed > 10) this.xSpeed = 10;
+    if (this.xSpeed > 10) this.xSpeed = 10; // Cap speed at 10
   }
 
 
