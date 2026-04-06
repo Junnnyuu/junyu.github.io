@@ -1,18 +1,16 @@
-// Project Title
-// Your Name
-// Date
-//
-// Extra for Experts:
-// - describe what you did to take this project "above and beyond"
+// Car Car Car
+// Junyu Tang
+// April 5, 2026
+//  This project simulates vehicle operations on a section of two-way roadway
 
 let car;
 let trafficLight;
 
-let eastbound = [];
+let eastbound = []; // Array to hold eastbound vehicles
 let westbound = [];
 
 let addDownCar = 2;
-let lastAddDownCar = 2;
+
 
 function setup() 
 {
@@ -21,19 +19,18 @@ function setup()
 
   trafficLight = new TrafficLight(15, height - 20);
 
+  let xSpeed = random(1, 5); // Random speed for initial vehicles
   let add_down_Car = addDownCar;
-  for (let i = 0; i < add_down_Car; i++) 
+  for (let i = 0; i < add_down_Car; i++) // Add initial vehicles to eastbound
   {
     let y = random(10, 120);
-    let xSpeed = random(1, 5);
-    eastbound.push(new Vehicle(random(0, width), y,0, 2, xSpeed));
+    eastbound.push(new Vehicle(random(0, width), y,0, 2, xSpeed)); // Add cars to eastbound
     eastbound.push(new Vehicle(random(0, width), y,1, 2, xSpeed));
   }
 
   for (let i = 0; i < add_down_Car; i++) 
   {
     let y = random(230, 320);
-    let xSpeed = random(1, 5);
     westbound.push(new Vehicle(random(0, width), y, 0, 1, xSpeed));
     westbound.push(new Vehicle(random(0, width), y, 1, 1, xSpeed));
   }
@@ -45,13 +42,14 @@ function draw()
   drawRoad();
 
   for (let i = 0; i < eastbound.length; i++) 
-    {
+  {
     eastbound[i].action(); // Perform vehicle behavior
   }
 
+
   // Update westbound vehicles
   for (let i = 0; i < westbound.length; i++) 
-    {
+  {
     westbound[i].action(); // Perform vehicle behavior
   }
 
@@ -67,8 +65,9 @@ function drawRoad()
 
   stroke('magenta');
   strokeWeight(3);
-  for (let i = 0; i < width; i += 40) {
-    line(i, height / 2, i + 20, height / 2);
+  for (let i = 0; i < width; i += 40) 
+  {
+    line(i, height / 2, i + 20, height / 2); // Draw dashed center line
   }
 }
 
@@ -93,18 +92,18 @@ class Vehicle
     translate(this.x, this.y);
 
     if (this.direction === 1) 
-      {
+    {
       scale(-1, 1);
     }
 
     if (this.type === 0) 
-      {
+    {
       this.drawCar();
   
     }
 
     else if (this.type === 1) 
-      {
+    {
       this.drawTruck();
     }
 
@@ -137,7 +136,7 @@ class Vehicle
     stroke(255);
     strokeWeight(1);
 
-    let lineX = -this.width / 2 + 5;
+    let lineX;
     lineX = this.width / 2 - 5;
     line(lineX, -this.height / 2, lineX, this.height / 2);
   }
@@ -148,25 +147,31 @@ class Vehicle
 
 
 
-
-
   move() 
   {
-    if (this.direction === 2) {
+    if (this.direction === 2)
+    {
       this.x += this.xSpeed;
-    } else if (this.direction === 1) {
+    } 
+    
+
+    else if (this.direction === 1) 
+    {
       this.x -= this.xSpeed;
     }
 
-    if (this.x > width + this.width / 2) {
+
+    if (this.x > width + this.width / 2) 
+    {
       this.x = -this.width / 2;
-    } else if (this.x < -this.width / 2) {
+    } 
+
+    
+    else if (this.x < -this.width / 2) 
+    {
       this.x = width + this.width / 2;
     }
   }
-
-
-
 
 
 
@@ -175,9 +180,6 @@ class Vehicle
     this.xSpeed += 0.5;
     if (this.xSpeed > 10) this.xSpeed = 10;
   }
-
-
-
 
 
   changeColor() 
@@ -202,47 +204,59 @@ class Vehicle
     {
       this.move();
     }
+
     this.display();
 
-    if (Math.random() < 0.01) 
+    if (random(1) < 0.01) // 1% chance to speed up
     {
       this.speedUp();
     }
 
-
-    if (Math.random() < 0.01) 
+    if (random(1) < 0.01) 
     {
       this.speedDown();
     }
 
-    if (Math.random() < 0.01) 
+    if (random(1) < 0.01) 
     {
       this.changeColor();
     }
+
   }
 }
 
 function mousePressed() 
 {
-  if (mouseButton === LEFT && keyIsDown(SHIFT)) 
-  {
-    addDownCar += 1;
-    // Add new vehicles to eastbound
-    let y = random(10, 120);
-    let xSpeed = random(1, 5);
+  let y, xSpeed, type;
 
-    // Add new vehicles to westbound
+  // determine vehicle type (0 for car, 1 for truck)
+  if (random(1) < 0.5)
+  {
+    type = 1;
+  }
+  else 
+  {
+    type = 0;
+  }
+
+
+  if (mouseButton === LEFT && keyIsDown(SHIFT)) // Add new vehicles to westbound
+  {
     y = random(230, 320);
     xSpeed = random(1, 10);
-    westbound.push(new Vehicle(random(0, width), y, 0,1, xSpeed));
+    westbound.push(new Vehicle(random(0, width), y, type,1, xSpeed));
   }
+
+
   else if (mouseButton === LEFT) 
   {
     addDownCar += 1;
     // Add new vehicles to eastbound
-    let y = random(10, 120);
-    let xSpeed = random(1, 2);
-    eastbound.push(new Vehicle(random(0, width), y, 1, 2, xSpeed));
+    y = random(10, 120);
+    xSpeed = random(1, 2);
+
+    eastbound.push(new Vehicle(random(0, width), y, type, 2, xSpeed));
+
   }
 
   return false;
@@ -259,8 +273,6 @@ function keyPressed()
 
 
 
-
-
 // TrafficLight class: controls light behavior
 class TrafficLight 
 {
@@ -269,7 +281,7 @@ class TrafficLight
     this.x = x;
     this.y = y;
     this.state = "green"; // Initial state
-    this.frameCount = 0;
+    this.frameCount = 0; //
   }
 
   // Draw the traffic light

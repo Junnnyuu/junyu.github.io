@@ -3,7 +3,7 @@
 // February 27, 2026
 //
 // Extra for Experts:
-// - I added a feature where the user can change the background color by clicking the middle mouse button or pressing the spacebar.
+// - I added a feature where the user can change the background color by pressing the spacebar.
 // - I also added a feature where the user can change the car color by pressing the 'C' key.
 // - The character's mouth changes based on mouse wheel input, allowing for a smile, frown, or neutral expression.
 
@@ -15,7 +15,7 @@ let x_1 = 300;
 
 let mouthHeight = 0;
 
-let backgroundColors = [ [180, 210, 230], [250, 200, 200], [200, 250, 200], [200, 200, 250], [255, 255, 180]  ];
+let backgroundColors = [ [180, 210, 230], [250, 200, 200], [200, 250, 200], [200, 200, 250], [255, 255, 180]  ]; // Array of background colors
 let currentBgIndex = 0; // Current background index
 
 let carColor;
@@ -69,7 +69,7 @@ function drawsky()
 }
 
 
-function car_and_person(move_1,move_2)
+function car_and_person(move_1,move_2) // draw the car and person, with parameters for the car's x and yposition 
 {
   push();
   fill(carColor);
@@ -90,7 +90,7 @@ function car_and_person(move_1,move_2)
   fill(0);
   noStroke();
 
-  if(mouseIsPressed && mouseButton === LEFT)
+  if(mouseIsPressed && mouseButton === LEFT) // Change to "angry" eyes when the left mouse button is pressed
   {
     rect(move_1 + 6, move_2 - 53, 4, 2);
     rect(move_1 + 16, move_2 - 53, 4, 2);
@@ -104,11 +104,11 @@ function car_and_person(move_1,move_2)
   stroke(0);
 
 
-  if (mouthHeight > 0) {
+  if (mouthHeight > 0) { // Smile
     arc(move_1 + 13, move_2 - 46, 10, mouthHeight, 0, PI); // Smile
   }
 
-  else if(mouthHeight < 0)
+  else if(mouthHeight < 0) // cry
   {
     arc(move_1 + 13, move_2 - 46, 10, abs(mouthHeight), PI, 0); // Frown/cry (upward)
   }
@@ -123,7 +123,7 @@ function car_and_person(move_1,move_2)
 
 
 
-function mouseWheel(event)
+function mouseWheel(event) // Change mouth expression 
 {
   if(event.delta > 0) // Scroll down
   {
@@ -141,11 +141,6 @@ function mouseWheel(event)
 
 
 
-function mousePressed() {
-  if(mouseButton === CENTER) {
-    currentBgIndex = (currentBgIndex + 1) % backgroundColors.length; // Cycle through background colors
-  }
-}
   
 // keyboard events, press LEFT ARROW to change background color
 function keyPressed() {
@@ -163,7 +158,7 @@ function draw() {
 
   x_1 = constrain(mouseX, 10, width - 10); // Constrain the car's x position to stay within the canvas
 
-  background(backgroundColors[currentBgIndex]);
+  background(backgroundColors[currentBgIndex]);// Set the background color based on the current index
   Mountain();
   drawsky();
 
@@ -172,7 +167,7 @@ function draw() {
   noStroke();
   rect(0,300,400,250);
 
-  car_and_person(x_1,x_2);
+  car_and_person(x_1,x_2); // Draw the car and person with the current x position and fixed y position
   
   fill('limegreen');
   text('Junyu', 300, 350);
