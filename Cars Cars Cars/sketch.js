@@ -136,7 +136,7 @@ class Vehicle
     stroke(255);
     strokeWeight(1);
 
-    let lineX; //
+    let lineX; // Position of the dividing line between cab and trailer
     lineX = this.width / 2 - 5;
     line(lineX, -this.height / 2, lineX, this.height / 2);
   }
