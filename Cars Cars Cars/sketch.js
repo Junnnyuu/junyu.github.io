@@ -164,7 +164,7 @@ class Vehicle
     if (this.x > width + this.width / 2) // If vehicle goes off the right edge, wrap to left
     {
       this.x = -this.width / 2;
-    } 
+     } 
 
     
     else if (this.x < -this.width / 2) 
