@@ -20,6 +20,7 @@ let currentRow, currentCol;
 
 function setup() {
   createCanvas(cols*tileSize, rows*tileSize);
+  randomizeGrid();
 }
 
 function draw() {
@@ -29,6 +30,13 @@ function draw() {
   textSize(20);
   fill(255,0,0);
   //text(getCurrentX()+","+getCurrentY(),mouseX, mouseY)
+
+  if(checkwin())
+  {
+    fill(100);
+    textSize(60);
+    text("YOU WIN!!", 30, height - 30);
+  }
 }
 
 
@@ -48,34 +56,19 @@ function mousePressed(){
 
 function determineActive(){
   // An expression to run each frame to determine where the mouse currently is.
-  currentRow = int(mouseY / rectHeight);
-  currentCol = int(mouseX / rectWidth);
+  currentRow = int(mouseY / tileSize);
+  currentCol = int(mouseX / tileSize);
 }
 
 
 
 
 function flip(x,y){
+  // Check boundary conditions before flipping
+  if(x < 0 || x >= cols || y < 0 || y >= rows) return;
+  
   if(grid[y][x] === 0) grid[y][x] = 255;
   else grid[y][x] = 0;
-}
-
-function mousePressed(){
-  //only do a flip if mouse is on the Canvas
-  if(mouseX < width && mouseY < height){
-    
-    let x = getCurrentX();
-    let y = getCurrentY();
-
-    // ALWAYS:
-    flip(x, y);
-
-    // IF THEY EXIST:
-    // flip the cardinal (NSEW) neighbours
-    if(x-1 >= 0) flip(x-1, y); //LEFT
-    if(y-1 >= 0) flip(x, y-1); //UP
-  }
-  
 }
 
 function renderGrid(){
@@ -90,6 +83,7 @@ function renderGrid(){
   }
 }
 
+
 function getCurrentX(){
   //determine the current col position of mouse
   let constrainedX = constrain(mouseX, 0, width-1);
@@ -100,4 +94,33 @@ function getCurrentY(){
   //determine the current row position of mouse
   let constrainedY = constrain(mouseY, 0, height-1);
   return floor(constrainedY / tileSize);
+}
+
+
+function checkwin()
+{
+  let firstValue = grid[0][0];
+  for(let y = 0; y< rows; y++)
+  {
+    for(let x = 0; x < cols; x++)
+    {
+      if(grid[y][x] != firstValue)
+      {
+        return false;
+      }
+
+    }
+  }
+  return true;
+}
+
+function randomizeGrid()
+{
+  for(let y = 0; y< rows; y++)
+  {
+    for(let x = 0; x < cols; x++)
+    {
+      grid[y][x] = random([0,255]);
+    }
+  }
 }
