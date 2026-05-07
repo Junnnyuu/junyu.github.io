@@ -25,8 +25,10 @@ function setup() {
 
 function draw() {
   background(220);
-  determineActive();
   renderGrid();
+  determineActive();
+  predictGrip();
+  //noStroke();
   textSize(20);
   fill(255,0,0);
   //text(getCurrentX()+","+getCurrentY(),mouseX, mouseY)
@@ -122,5 +124,38 @@ function randomizeGrid()
     {
       grid[y][x] = random([0,255]);
     }
+  }
+}
+
+
+function predictGrip()
+{
+  let grid1 = getCurrentX();
+  let grid2 = getCurrentY();
+
+  fill(255, 165, 0, 150);  // Orange with transparency
+  //noStroke();
+  
+  // Center box
+  square(grid1*tileSize, grid2*tileSize, tileSize);
+  
+  // Top box
+  if(grid2 - 1 >= 0) {
+    square(grid1*tileSize, (grid2-1)*tileSize, tileSize);
+  }
+  
+  // Bottom box
+  if(grid2 + 1 < rows) {
+    square(grid1*tileSize, (grid2+1)*tileSize, tileSize);
+  }
+  
+  // Left box
+  if(grid1 - 1 >= 0) {
+    square((grid1-1)*tileSize, grid2*tileSize, tileSize);
+  }
+  
+  // Right box
+  if(grid1 + 1 < cols) {
+    square((grid1+1)*tileSize, grid2*tileSize, tileSize);
   }
 }
