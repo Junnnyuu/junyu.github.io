@@ -32,7 +32,9 @@ function draw() {
   // Show preview based on current mode
   if(mode === 'cross') {
     predictGrip_cross();
-  } else if(mode === 'square') {
+  } 
+  
+  else if(mode === 'square') {
     predictGrip_square();
   }
   
@@ -69,8 +71,9 @@ function mousePressed(){
     flip(currentCol+1, currentRow);
     flip(currentCol, currentRow-1);
     flip(currentCol, currentRow+1);
-  } else if(mode === 'square') {
-    // Square pattern: center + top + top-right + right
+  } 
+  
+  else if(mode === 'square') {
     flip(currentCol, currentRow);
     flip(currentCol, currentRow-1);
     flip(currentCol+1, currentRow-1);

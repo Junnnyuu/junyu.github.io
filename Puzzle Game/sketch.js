@@ -17,7 +17,7 @@ let rows = grid.length;
 let cols = grid[0].length;
 let tileSize = 60;
 let currentRow, currentCol;
-let state = "cross";
+let state = "none";
 
 function setup() {
   createCanvas(cols*tileSize, rows*tileSize);
@@ -28,8 +28,29 @@ function draw() {
   background(220);
   renderGrid();
   determineActive();
-  //predictGrip_cross();
-  predictGrip_square()
+  
+
+  if(state === "cross") {
+    predictGrip_cross();
+    textSize(20);
+    fill(255,0,0);
+    text("Cross Mode", 0, height - 10);
+  } 
+  
+  else if(state === "square") 
+  {
+    predictGrip_square();
+    textSize(20);
+    fill(255,0,0);
+    text("Square Mode", 0, height - 10);
+  }
+
+  else if( state === "none")
+  { 
+    textSize(20);
+    fill(255,0,0);
+    text("None", 0, height - 10);
+  }
   //noStroke();
   textSize(20);
   fill(255,0,0);
@@ -51,17 +72,43 @@ function mousePressed(){
     flip (currentCol, currentRow);
     return;
   }
+  if(state === "cross" || state === "none")
+  {
     flip(currentCol, currentRow);
     flip(currentCol-1, currentRow);
     flip(currentCol+1, currentRow);
     flip(currentCol, currentRow-1);
     flip(currentCol, currentRow+1);
+  }
+
+  else if(state === 'square') 
+  {
+      flip(currentCol, currentRow);
+      flip(currentCol, currentRow-1);
+      flip(currentCol+1, currentRow-1);
+      flip(currentCol+1, currentRow);
+  }
+}
 
 
-    // flip(currentCol, currentRow);
-    // flip(currentCol, currentRow-1);
-    // flip(currentCol+1, currentRow-1);
-    // flip(currentCol+1, currentRow);
+function keyPressed()
+{
+  if(key === " ")
+  {
+    if(state === "none")
+    {
+      state = "cross";
+    }
+    else if(state === "cross")
+    {
+      state = "square";
+    }
+    else if(state === "square")
+    {
+      state = "none";
+    }
+    return false;
+  }
 }
 
 function determineActive(){
