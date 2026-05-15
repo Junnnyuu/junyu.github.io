@@ -17,6 +17,7 @@ let rows = grid.length;
 let cols = grid[0].length;
 let tileSize = 60;
 let currentRow, currentCol;
+let state = "cross";
 
 function setup() {
   createCanvas(cols*tileSize, rows*tileSize);
@@ -27,7 +28,8 @@ function draw() {
   background(220);
   renderGrid();
   determineActive();
-  //predictGrip();
+  //predictGrip_cross();
+  predictGrip_square()
   //noStroke();
   textSize(20);
   fill(255,0,0);
@@ -54,6 +56,12 @@ function mousePressed(){
     flip(currentCol+1, currentRow);
     flip(currentCol, currentRow-1);
     flip(currentCol, currentRow+1);
+
+
+    // flip(currentCol, currentRow);
+    // flip(currentCol, currentRow-1);
+    // flip(currentCol+1, currentRow-1);
+    // flip(currentCol+1, currentRow);
 }
 
 function determineActive(){
@@ -128,7 +136,7 @@ function randomizeGrid()
 }
 
 
-function predictGrip()
+function predictGrip_cross()
 {
   let grid1 = getCurrentX();
   let grid2 = getCurrentY();
@@ -161,37 +169,31 @@ function predictGrip()
 }
 
 
-function keyPressed()
-{
-  if(key === '')
-  {
-    let grid1 = getCurrentX();
-    let grid2 = getCurrentY();
 
-    fill(255, 165, 0, 150);  // Orange with transparency
+function predictGrip_square()
+{
+  let grid1 = getCurrentX();
+  let grid2 = getCurrentY();
+
+  fill(255, 165, 0, 150);  // Orange with transparency
   //noStroke();
   
   // Center box
-    square(grid1*tileSize, grid2*tileSize, tileSize);
+  square(grid1*tileSize, grid2*tileSize, tileSize);
   
   // Top box
-    if(grid2 - 1 >= 0 && grid1 + 1 < cols) {
-      square((grid1+1)*tileSize, grid2*tileSize, tileSize);
-    }
-  
-  // Bottom box
-    if(grid2 + 1 < rows) {
-      square(grid1*tileSize, (grid2+1)*tileSize, tileSize);
-    }
-  
-  // Left box
-    if(grid1 - 1 >= 0) {
-      square((grid1-1)*tileSize, grid2*tileSize, tileSize);
-    }
+  if(grid2 - 1 >= 0) {
+    square(grid1*tileSize, (grid2-1)*tileSize, tileSize);
+  }
+
+  // Top box
+  if(grid2 - 1 >= 0) {
+    square((grid1+1)*tileSize, (grid2-1)*tileSize, tileSize);
+  }
   
   // Right box
-    if(grid1 + 1 < cols) {
-      square((grid1+1)*tileSize, grid2*tileSize, tileSize);
-    }
+  if(grid1 + 1 < cols) {
+    square((grid1+1)*tileSize, grid2*tileSize, tileSize);
   }
 }
+
