@@ -83,15 +83,15 @@ function mousePressed(){
 
   else if(state === 'square') 
   {
-      flip(currentCol, currentRow);
-      flip(currentCol, currentRow-1);
-      flip(currentCol+1, currentRow-1);
-      flip(currentCol+1, currentRow);
+    flip(currentCol, currentRow);
+    flip(currentCol, currentRow-1);
+    flip(currentCol+1, currentRow-1);
+    flip(currentCol+1, currentRow);
   }
 }
 
 
-function keyPressed()
+function keyPressed() // Pressing three modes: none, cross, and square.
 {
   if(key === " ")
   {
