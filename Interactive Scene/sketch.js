@@ -21,7 +21,7 @@ let currentBgIndex = 0; // Current background index
 let carColor;
 
 function setup() {
-  createCanvas(400, 400);
+  createCanvas(200, 200);
   carColor = color(205,204,204);
 }
 
