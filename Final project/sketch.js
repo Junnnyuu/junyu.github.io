@@ -7,6 +7,7 @@
 
 let img_player1, img_player2, img_player3, img_Birdie;
 let img_player4, img_player5, img_player6;
+
 let player1,player2;
 
 let isDragging = false;
@@ -22,31 +23,73 @@ function preload()
   img_player3 = loadImage("assets/player_idle_3.png");
   img_Birdie = loadImage("assets/badminton_birdie_1.png");
   
-  player_4 = loadImage("assets/player_idle_4.png");
-  player_5 = loadImage("assets/player_idle_5.png");
-  player_6 = loadImage("assets/player_idle_6.png");
+  img_player4 = loadImage("assets/player_idle_4_right.png");
+  img_player5 = loadImage("assets/player_idle_5_right.png");
+  img_player6 = loadImage("assets/player_idle_6_right.png");
 }
 
 function setup() {
   createCanvas(1200,600);
+
+  let p1Frames = [img_player1, img_player2, img_player3];
+  let p2Frames = [img_player4, img_player5, img_player6];
+
   player1 = new Character(200, 450, 100, p1Frames, 1);
   player2 = new Character(1000, 450, 100, p2Frames, 2);
+
+  dragStart = createVector(0,0);
+  dragEnd = createVector(0,0);
 }
 
 function draw() {
   background(135,206,235);
-  fill(34,139,34);
 
+
+  fill(34,139,34);
   noStroke();
   rect(0,500,width,100);
+
+
   player1.display();
   player2.display();
+
+  handleAiming();
 }
 
 
 
 function handleAiming()
 {
+  if(isDragging)
+  {
+    dragEnd.set(mouseX, mouseY);
+    let aimVector = p5.Vector.sub(dragStart, dragEnd); //cal the vector
+
+    //cal angle
+    let rad = atan2(aimVector.y, aimVector.x);
+    currentPower = round(degrees(rad));
+    if(currentAngle < 0)
+    {
+      currentAngle += 360;
+    }
+
+    //cal power
+    let distance = aimVector.mag();
+    currentPower = round(map(distance,0,200,0,100));
+    currentPower = constrain(currentPower,0,100);
+
+    //make the line
+    stroke(255,255,255,150);
+    strokeWeight(4);
+    for(let i = 0; i<=10; i++)
+    {
+      let x = dragStart.x + (aimVector.x * 1.5 * (i / 10));
+      let y = dragStart.y + (aimVector.y * 1.5 * (i / 10));
+      ellipse(x,y,5,5);
+    }
+    //function draw the with box
+    drawHudBox(dragStart.x,dragEnd.y - 120);
+  }
 
 
 }
@@ -55,23 +98,57 @@ function handleAiming()
 function drawHudBox(x,y)
 {
 
+  push();
+  rectMode(CENTER);
+  stroke(180);
+  strokeWeight(2);
+  fill(255,255,255,230);
+  rect(x,y,160,50,10);
 
+  stroke(220);
+  line(x, y - 25, x, y + 25);
+
+  noStroke();
+  textAlign(CENTER, CENTER);
+
+  textSize(14);
+  fill(100,50,150);
+  text(currentPower + "%", x - 40, y - 5);
+
+  textSize(9);
+  fill(150);
+  text("POWER", x - 40, y + 12);
+
+  textSize(14);
+  fill(100,50,150);
+  text(currentPower + "°", x + 40, y - 5);
+
+  textSize(9);
+  fill(150);
+  text("angle", x + 40, y + 12);
 }
+
 
 
 function mousePressed()
 {
-
-
-
-
+  if(dist(mouseX, mouseY, player1.pos.x, player2.pos.y) < 60)
+  {
+    isDragging = true;
+    dragStart.set(mouseX, mouseY);
+  }
 }
 
 
 
 function mouseReleased()
 {
-  
+  if(isDragging)
+  {
+    isDragging = false;
+    player1.strike();
+  }
+
 }
 
 
@@ -90,7 +167,7 @@ class Character
     this.isStriking = false;
 
     this.width = 50;
-    this.length = 100;
+    this.heights = 100;
   }
 
 
@@ -99,7 +176,7 @@ class Character
     push();
     imageMode(CENTER);
     let currentImg = this.frames[this.currentFrame];
-    image(this.img,this.pos.x,this.pos.y,this.width,this.height);
+    image(currentImg,this.pos.x,this.pos.y,this.width,this.heights);
     pop();
 
     this.drawHealthBar();
