@@ -1,9 +1,10 @@
-// Project Title
-// Your Name
-// Date
-//
-// Extra for Experts:
-// - describe what you did to take this project "above and beyond"
+// Puzzle Game
+// JunyuTang
+// May 1, 2026
+
+// This is a puzzle game where the player needs to flip the tiles to make them all the same color.
+// The player can choose between two modes: cross and square. In cross mode, the player flips the current tile and its four orthogonal neighbors. 
+
 
 
 let grid = [
@@ -17,7 +18,7 @@ let rows = grid.length;
 let cols = grid[0].length;
 let tileSize = 60;
 let currentRow, currentCol;
-let state = "none";
+let state = "none"; // state variable to track the current mode: "none", "cross", or "square"
 
 function setup() {
   createCanvas(cols*tileSize, rows*tileSize);
@@ -30,7 +31,7 @@ function draw() {
   determineActive();
   
 
-  if(state === "cross") {
+  if(state === "cross") { // If the state is cross, the predictGrip_cross function is called to show the cross-shaped pattern that will be flipped on a mouseclick.
     predictGrip_cross();
     textSize(20);
     fill(255,0,0);
