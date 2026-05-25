@@ -1,9 +1,10 @@
-// Project Title
-// Your Name
-// Date
-//
-// Extra for Experts:
-// - describe what you did to take this project "above and beyond"
+// Puzzle Game
+// JunyuTang
+// May 1, 2026
+
+// This is a puzzle game where the player needs to flip the tiles to make them all the same color.
+// The player can choose between two modes: cross and square. In cross mode, the player flips the current tile and its four orthogonal neighbors. 
+
 
 
 let grid = [
@@ -17,7 +18,7 @@ let rows = grid.length;
 let cols = grid[0].length;
 let tileSize = 60;
 let currentRow, currentCol;
-let state = "none";
+let state = "none"; // state variable to track the current mode: "none", "cross", or "square"
 
 function setup() {
   createCanvas(cols*tileSize, rows*tileSize);
@@ -30,7 +31,7 @@ function draw() {
   determineActive();
   
 
-  if(state === "cross") {
+  if(state === "cross") { // If the state is cross, the predictGrip_cross function is called to show the cross-shaped pattern that will be flipped on a mouseclick.
     predictGrip_cross();
     textSize(20);
     fill(255,0,0);
@@ -154,14 +155,14 @@ function getCurrentY(){
 }
 
 
-function checkwin()
+function checkwin() 
 {
-  let firstValue = grid[0][0];
+  let firstValue = grid[0][0]; // Store the value of the first tile to compare with others
   for(let y = 0; y< rows; y++)
   {
     for(let x = 0; x < cols; x++)
     {
-      if(grid[y][x] != firstValue)
+      if(grid[y][x] != firstValue)// If any tile is different from the first tile, the player has not won yet
       {
         return false;
       }
@@ -173,9 +174,9 @@ function checkwin()
 
 function randomizeGrid()
 {
-  for(let y = 0; y< rows; y++)
+  for(let y = 0; y< rows; y++)// Loop through each row
   {
-    for(let x = 0; x < cols; x++)
+    for(let x = 0; x < cols; x++)// Loop through each column in the current row
     {
       grid[y][x] = random([0,255]);
     }
