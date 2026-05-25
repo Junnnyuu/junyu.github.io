@@ -15,6 +15,9 @@ let dragStart, dragEnd;
 let currentAngle = 0;
 let currentPower = 0;
 
+let activeBirdie = null;
+let gravity;
+
 
 function preload()
 {
@@ -39,7 +42,11 @@ function setup() {
 
   dragStart = createVector(0,0);
   dragEnd = createVector(0,0);
+
+  gravity = createVector(0,0.4);
 }
+
+
 
 function draw() {
   background(135,206,235);
@@ -54,6 +61,12 @@ function draw() {
   player2.display();
 
   handleAiming();
+
+  if(activeBirdie != null)
+  {
+    activeBirdie.update();
+    activeBirdie.display();
+  }
 }
 
 
@@ -63,7 +76,7 @@ function handleAiming()
   if(isDragging)
   {
     dragEnd.set(mouseX, mouseY);
-    let aimVector = p5.Vector.sub(dragStart, dragEnd); //cal the vector
+    let aimVector = p5.Vector.sub(dragEnd, dragStart); //cal the vector
 
     //cal angle
     let rad = atan2(aimVector.y, aimVector.x);
@@ -147,8 +160,18 @@ function mouseReleased()
   {
     isDragging = false;
     player1.strike();
-  }
+  
 
+  let launchSpeed = map(currentPower, 0, 100, 0, 25);
+  let rad = radians(currentAngle);
+
+  let VelX = cos(rad) * launchSpeed;
+  let VelY = sin(rad) * launchSpeed;
+  let launchVel = createVector(VelX, VelY);
+  
+  activeBirdie = new Birdie(player1.pos.x, player1.pos.y, launchVel, img_Birdie);
+
+  }
 }
 
 
@@ -222,3 +245,73 @@ class Character
 
 
 }
+
+
+class Birdie
+{
+
+  constructor(x,y,velocity,img)
+  {
+    this.pos = createVector(x,y);
+    this.vel = velocity;
+    this.img = img;
+    this.width = 40;
+    this.height = 40;
+  }
+
+  update()
+  {
+    this.vel.add(gravity);
+    this.pos.add(this.vel);
+  }
+
+  display()
+  {
+    push();
+
+    translate(this.pos.x, this.pos.y);
+    let angle = this.vel.heading();
+    rotate(angle + PI);
+    rotate(angle);
+
+    imageMode(CENTER);
+    image(this.img, 0, 0, this.width, this.height);
+    pop();
+  }
+}
+
+
+
+function checkCollision()
+{
+  if(activeBirdie === null)
+  {
+    return;
+  }
+
+  if(activeBirdie.pos.y >= 500)
+  {
+    activeBirdie = null;
+    return;
+  }
+
+  let hitDistance = dist(activeBirdie.pos.x, activeBirdie.pos.y, player2.pos.x, player2.pos.y);
+  if(hitDistance < 60)
+  {
+    player2.currentHp -= 25;
+    activeBirdie = null;
+
+    if(player2.currentHp < 0)
+      {
+        player2.currentHp = 0;
+      }
+  }
+
+
+}
+
+
+
+
+
+
