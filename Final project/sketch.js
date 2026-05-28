@@ -92,32 +92,48 @@ function handleAiming()
   if(isDragging)
   {
     dragEnd.set(mouseX, mouseY);
-    let aimVector = p5.Vector.sub(dragEnd, dragStart); //cal the vector
 
-    //cal angle
+    let aimVector = p5.Vector.sub(dragEnd, dragStart);
+    let maxDrag = 200;
+
+    if (aimVector.mag() > maxDrag) 
+    {
+      aimVector.setMag(maxDrag);
+    }
+
+    currentPower = round(map(aimVector.mag(), 0, maxDrag, 0, 100));
+
+
+    let launchSpeed = map(currentPower, 0, 100, 0, 25);
     let rad = atan2(aimVector.y, aimVector.x);
-    currentPower = round(degrees(rad));
-    if(currentAngle < 0)
-    {
-      currentAngle += 360;
+    let VelX = cos(rad) * launchSpeed;
+    let VelY = sin(rad) * launchSpeed;
+
+    
+    if (currentPlayer === 2) {
+      VelX = -VelX;
     }
 
-    //cal power
-    let distance = aimVector.mag();
-    currentPower = round(map(distance,0,200,0,100));
-    currentPower = constrain(currentPower,0,100);
-
-    //make the line
-    stroke(255,255,255,150);
+    
+    // x = x0 + vx*t, y = y0 + vy*t + 0.5*g*t^2
+    let startX = (currentPlayer === 1) ? player1.pos.x : player2.pos.x;
+    let startY = (currentPlayer === 1) ? player1.pos.y : player2.pos.y;
+    
+    stroke(255, 255, 255, 150);
     strokeWeight(4);
-    for(let i = 0; i<=10; i++)
+    noFill();
+
+    
+    for (let i = 1; i <= 15; i++) 
     {
-      let x = dragStart.x + (aimVector.x * 1.5 * (i / 10));
-      let y = dragStart.y + (aimVector.y * 1.5 * (i / 10));
-      ellipse(x,y,5,5);
+      let t = i * 4; 
+      let predX = startX + (VelX * t);
+      let predY = startY + (VelY * t) + (0.5 * gravity.y * t * t);
+      ellipse(predX, predY, 5, 5);
     }
-    //function draw the with box
-    drawHudBox(dragStart.x,dragEnd.y - 120);
+
+    // HUD
+    drawHudBox(dragStart.x, dragStart.y - 120);
   }
 
 
@@ -379,10 +395,4 @@ function switchTurn()
   {
     currentPlayer = 1;
   }
-
 }
-
-
-
-
-
