@@ -16,6 +16,7 @@ let currentAngle = 0;
 let currentPower = 0;
 
 let activeBirdie = null;
+let currentPlayer = 1;
 let gravity;
 
 
@@ -37,8 +38,8 @@ function setup() {
   let p1Frames = [img_player1, img_player2, img_player3];
   let p2Frames = [img_player4, img_player5, img_player6];
 
-  player1 = new Character(200, 450, 100, p1Frames, 1);
-  player2 = new Character(1000, 450, 100, p2Frames, 2);
+  player1 = new Character(300, 480, 100, p1Frames, 1);
+  player2 = new Character(400, 480, 100, p2Frames, 2);
 
   dragStart = createVector(0,0);
   dragEnd = createVector(0,0);
@@ -66,6 +67,21 @@ function draw() {
   {
     activeBirdie.update();
     activeBirdie.display();
+  }
+
+  checkCollision();
+
+
+  fill(0);
+  textSize(24);
+  textAlign(CENTER);
+  if(currentPlayer === 1)
+  {
+    text("Player 1's Turn", width / 2, 50);
+  }
+  else 
+  {
+    text("Player 2's Turn", width / 2, 50);
   }
 }
 
@@ -145,7 +161,15 @@ function drawHudBox(x,y)
 
 function mousePressed()
 {
-  if(dist(mouseX, mouseY, player1.pos.x, player2.pos.y) < 60)
+  let activePlayer;
+  if (currentPlayer === 1) {
+    activePlayer = player1;
+  } else {
+    activePlayer = player2;
+  }
+
+
+  if(dist(mouseX, mouseY, activePlayer.pos.x, activePlayer.pos.y) < 60)
   {
     isDragging = true;
     dragStart.set(mouseX, mouseY);
@@ -159,17 +183,36 @@ function mouseReleased()
   if(isDragging)
   {
     isDragging = false;
-    player1.strike();
+    let spawnX;
+    let spawnY;
   
+    if(currentPlayer === 1)
+    {
+      spawnX = player1.pos.x;
+      spawnY = player1.pos.y;
+    }
 
-  let launchSpeed = map(currentPower, 0, 100, 0, 25);
-  let rad = radians(currentAngle);
+    else 
+    {
+      spawnX = player2.pos.x;
+      spawnY = player2.pos.y;
+    }
 
-  let VelX = cos(rad) * launchSpeed;
-  let VelY = sin(rad) * launchSpeed;
-  let launchVel = createVector(VelX, VelY);
+    let launchSpeed = map(currentPower, 0, 100, 0, 25);
+    let rad = radians(currentAngle);
+
+    let VelX = cos(rad) * launchSpeed;
+    let VelY = sin(rad) * launchSpeed;
+
+
+    if (currentPlayer === 2) 
+    {
+      VelX = -VelX;
+    }
+
+    let launchVel = createVector(VelX, VelY);
   
-  activeBirdie = new Birdie(player1.pos.x, player1.pos.y, launchVel, img_Birdie);
+    activeBirdie = new Birdie(spawnX, spawnY, launchVel, img_Birdie);
 
   }
 }
@@ -247,6 +290,8 @@ class Character
 }
 
 
+
+
 class Birdie
 {
 
@@ -272,7 +317,6 @@ class Birdie
     translate(this.pos.x, this.pos.y);
     let angle = this.vel.heading();
     rotate(angle + PI);
-    rotate(angle);
 
     imageMode(CENTER);
     image(this.img, 0, 0, this.width, this.height);
@@ -292,24 +336,51 @@ function checkCollision()
   if(activeBirdie.pos.y >= 500)
   {
     activeBirdie = null;
+    switchTurn();
     return;
   }
 
-  let hitDistance = dist(activeBirdie.pos.x, activeBirdie.pos.y, player2.pos.x, player2.pos.y);
+  let targetPlayer;
+  if(currentPlayer === 1)
+  {
+    targetPlayer = player2;
+  }
+
+  else
+  {
+    targetPlayer = player1;
+  }
+
+  let hitDistance = dist(activeBirdie.pos.x, activeBirdie.pos.y, targetPlayer.pos.x, targetPlayer.pos.y);
+
   if(hitDistance < 60)
   {
     player2.currentHp -= 25;
     activeBirdie = null;
 
     if(player2.currentHp < 0)
-      {
-        player2.currentHp = 0;
-      }
+    {
+      player2.currentHp = 0;
+    }
+    activeBirdie = null;
+    switchTurn();
   }
-
-
 }
 
+
+
+function switchTurn()
+{
+  if(currentPlayer  === 1)
+  {
+    currentPlayer = 2;
+  }
+  else
+  {
+    currentPlayer = 1;
+  }
+
+}
 
 
 
