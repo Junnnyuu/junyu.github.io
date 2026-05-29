@@ -38,8 +38,8 @@ function setup() {
   let p1Frames = [img_player1, img_player2, img_player3];
   let p2Frames = [img_player4, img_player5, img_player6];
 
-  player1 = new Character(300, 480, 100, p1Frames, 1);
-  player2 = new Character(400, 480, 100, p2Frames, 2);
+  player1 = new Character(200, 480, 100, p1Frames, 1);
+  player2 = new Character(500, 480, 100, p2Frames, 2);
 
   dragStart = createVector(0,0);
   dragEnd = createVector(0,0);
@@ -56,6 +56,9 @@ function draw() {
   fill(34,139,34);
   noStroke();
   rect(0,500,width,100);
+
+  player1.updateAnimation();
+  player2.updateAnimation();
 
 
   player1.display();
@@ -94,7 +97,7 @@ function handleAiming()
     dragEnd.set(mouseX, mouseY);
 
     let aimVector = p5.Vector.sub(dragEnd, dragStart);
-    let maxDrag = 200;
+    let maxDrag = 25;
 
     if (aimVector.mag() > maxDrag) 
     {
@@ -103,12 +106,19 @@ function handleAiming()
 
     currentPower = round(map(aimVector.mag(), 0, maxDrag, 0, 100));
 
+    let rad = atan2(aimVector.y, aimVector.x);
+
+    currentAngle = round(degrees(rad));
+
+    if(currentAngle < 0) 
+    {
+      currentAngle += 360;
+    }
 
     let launchSpeed = map(currentPower, 0, 100, 0, 25);
-    let rad = atan2(aimVector.y, aimVector.x);
     let VelX = cos(rad) * launchSpeed;
     let VelY = sin(rad) * launchSpeed;
-
+  
     
     if (currentPlayer === 2) {
       VelX = -VelX;
@@ -124,9 +134,9 @@ function handleAiming()
     noFill();
 
     
-    for (let i = 1; i <= 15; i++) 
+    for (let i = 1; i <= 18; i++) 
     {
-      let t = i * 4; 
+      let t = i * 1; 
       let predX = startX + (VelX * t);
       let predY = startY + (VelY * t) + (0.5 * gravity.y * t * t);
       ellipse(predX, predY, 5, 5);
@@ -142,7 +152,6 @@ function handleAiming()
 
 function drawHudBox(x,y)
 {
-
   push();
   rectMode(CENTER);
   stroke(180);
@@ -158,29 +167,38 @@ function drawHudBox(x,y)
 
   textSize(14);
   fill(100,50,150);
-  text(currentPower + "%", x - 40, y - 5);
+  text( currentPower + "%", x - 40, y - 5);
 
   textSize(9);
   fill(150);
   text("POWER", x - 40, y + 12);
 
+
   textSize(14);
   fill(100,50,150);
-  text(currentPower + "°", x + 40, y - 5);
+
+  text((360 - currentAngle) + "°", x + 40, y - 5); 
 
   textSize(9);
   fill(150);
   text("angle", x + 40, y + 12);
+  
+  pop(); 
 }
+
 
 
 
 function mousePressed()
 {
   let activePlayer;
-  if (currentPlayer === 1) {
+  if (currentPlayer === 1) 
+  {
     activePlayer = player1;
-  } else {
+  } 
+
+  else 
+  {
     activePlayer = player2;
   }
 
@@ -371,12 +389,12 @@ function checkCollision()
 
   if(hitDistance < 60)
   {
-    player2.currentHp -= 25;
+    targetPlayer.currentHp -= 25;
     activeBirdie = null;
 
-    if(player2.currentHp < 0)
+    if(targetPlayer.currentHp < 0)
     {
-      player2.currentHp = 0;
+      targetPlayer.currentHp = 0;
     }
     activeBirdie = null;
     switchTurn();
