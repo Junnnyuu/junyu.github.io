@@ -17,7 +17,10 @@ let currentPower = 0;
 
 let activeBirdie = null;
 let currentPlayer = 1;
-let gravity;
+let gravity; // Gravity vector for the birdie's trajectory
+
+let gameState = "PLAY"; // Game state variable to manage different phases of the game (e.g., "PLAY", "GAMEOVER")
+let winner = "";
 
 
 function preload()
@@ -49,43 +52,63 @@ function setup() {
 
 
 
-function draw() {
-  background(135,206,235);
+function draw() 
+{
 
-
-  fill(34,139,34);
-  noStroke();
-  rect(0,500,width,100);
-
-  player1.updateAnimation();
-  player2.updateAnimation();
-
-
-  player1.display();
-  player2.display();
-
-  handleAiming();
-
-  if(activeBirdie != null)
+  if(gameState === "PLAY")
   {
-    activeBirdie.update();
-    activeBirdie.display();
+    background(135,206,235);
+
+
+    fill(34,139,34);
+    noStroke();
+    rect(0,500,width,100);// Ground
+  
+    player1.updateAnimation(); // Update the animation state of the active player
+    player2.updateAnimation();
+  
+  
+    player1.display();
+    player2.display();
+  
+    handleAiming();
+  
+    if(activeBirdie != null)
+    {
+      activeBirdie.update();
+      activeBirdie.display();
+    }
+  
+    checkCollision();
+  
+  
+    fill(0);
+    textSize(24);
+    textAlign(CENTER);
+
+    if(currentPlayer === 1)
+    {
+      text("Player 1's Turn", width / 2, 50);
+    }
+    else 
+    {
+      text("Player 2's Turn", width / 2, 50);
+    }
+
   }
 
-  checkCollision();
-
-
-  fill(0);
-  textSize(24);
-  textAlign(CENTER);
-  if(currentPlayer === 1)
+  else if(gameState === "GAMEOVER")
   {
-    text("Player 1's Turn", width / 2, 50);
+    background(30);
+    fill(255);
+    textSize(50);
+    textAlign(winner + "WINS", width/2, height/2 - 50);
+
+    textSize(20);
+    textAlign("Press R to restart", width/2,height/2 + 30);
+
   }
-  else 
-  {
-    text("Player 2's Turn", width / 2, 50);
-  }
+ 
 }
 
 
@@ -143,7 +166,7 @@ function handleAiming()
     }
 
     // HUD
-    drawHudBox(dragStart.x, dragStart.y - 120);
+    drawHudBox(dragStart.x, dragStart.y - 120); // Draw the HUD box above the drag start point
   }
 
 
@@ -152,7 +175,7 @@ function handleAiming()
 
 function drawHudBox(x,y)
 {
-  push();
+  push();// Save the current drawing state
   rectMode(CENTER);
   stroke(180);
   strokeWeight(2);
@@ -165,7 +188,7 @@ function drawHudBox(x,y)
   noStroke();
   textAlign(CENTER, CENTER);
 
-  textSize(14);
+  textSize(14);// Set text size for power and angle
   fill(100,50,150);
   text( currentPower + "%", x - 40, y - 5);
 
@@ -177,13 +200,13 @@ function drawHudBox(x,y)
   textSize(14);
   fill(100,50,150);
 
-  text((360 - currentAngle) + "°", x + 40, y - 5); 
+  text((360 - currentAngle) + "°", x + 40, y - 5); // Display angle in degrees, adjusting for player 2's perspective
 
   textSize(9);
   fill(150);
   text("angle", x + 40, y + 12);
   
-  pop(); 
+  pop();
 }
 
 
@@ -203,7 +226,7 @@ function mousePressed()
   }
 
 
-  if(dist(mouseX, mouseY, activePlayer.pos.x, activePlayer.pos.y) < 60)
+  if(dist(mouseX, mouseY, activePlayer.pos.x, activePlayer.pos.y) < 60) //if the mouse is within 60 pixels of the active player, start dragging 
   {
     isDragging = true;
     dragStart.set(mouseX, mouseY);
@@ -212,7 +235,8 @@ function mousePressed()
 
 
 
-function mouseReleased()
+
+function mouseReleased() //mouse event
 {
   if(isDragging)
   {
@@ -220,7 +244,7 @@ function mouseReleased()
     let spawnX;
     let spawnY;
   
-    if(currentPlayer === 1)
+    if(currentPlayer === 1)// Set the spawn position of the birdie based on the current player
     {
       spawnX = player1.pos.x;
       spawnY = player1.pos.y;
@@ -248,11 +272,36 @@ function mouseReleased()
   
     activeBirdie = new Birdie(spawnX, spawnY, launchVel, img_Birdie);
 
+    if(currentPlayer === 1)
+    {
+      player1.strike();
+    }
+
+    else
+    {
+      player2.strike();
+    }
+
   }
 }
 
 
-class Character
+function keyPressed()
+{
+  if(gameState === "GAMEOVER" && (key === "r" || key === "R"))
+  {
+    player1.currentHp = player1.maxHp;
+    player2.currentHp = player2.maxHp;
+    currentPlayer = 1;
+    activeBirdie = null;
+    gameState = "PLAY";
+  }
+}
+
+
+
+
+class Character //class for the player characters
 {
   constructor(x,y,maxHp,framsArray,side)
   {
@@ -261,7 +310,7 @@ class Character
     this.currentHp = maxHp;
 
 
-    this.frames = framsArray;
+    this.frames = framsArray; // Array of images for the character's animation frames (idle, striking, etc.)
     this.currentFrame = 0;
     this.side = side;
     this.isStriking = false;
@@ -275,7 +324,7 @@ class Character
   {
     push();
     imageMode(CENTER);
-    let currentImg = this.frames[this.currentFrame];
+    let currentImg = this.frames[this.currentFrame]; // Get the current frame image based on the character's state
     image(currentImg,this.pos.x,this.pos.y,this.width,this.heights);
     pop();
 
@@ -296,7 +345,7 @@ class Character
       if(frameCount % 10 === 0)
       {
         this.currentFrame ++;
-        if(this.currentFrame >= this.frames.length)
+        if(this.currentFrame >= this.frames.length) // Loop back to the first frame after the animation completes
         {
           this.currentFrame = 0;
           this.isStriking = false;
@@ -305,6 +354,7 @@ class Character
     }
   }
 
+  
 
 
   drawHealthBar()
@@ -315,7 +365,7 @@ class Character
     rect(this.pos.x - 40, this.pos.y - 75,80,8,4);
 
     fill(50,230,100);
-    let healthWidth = map(this.currentHp, 0 , this.maxHp, 0 , 80);
+    let healthWidth = map(this.currentHp, 0 , this.maxHp, 0 , 80); // Map the current health to the width of the health bar
     rect(this.pos.x - 40, this.pos.y - 75, healthWidth, 8,4);
     pop();
   }
@@ -349,7 +399,7 @@ class Birdie
     push();
 
     translate(this.pos.x, this.pos.y);
-    let angle = this.vel.heading();
+    let angle = this.vel.heading(); // Get the angle of the velocity vector for rotation
     rotate(angle + PI);
 
     imageMode(CENTER);
@@ -377,7 +427,7 @@ function checkCollision()
   let targetPlayer;
   if(currentPlayer === 1)
   {
-    targetPlayer = player2;
+    targetPlayer = player2;//
   }
 
   else
@@ -385,25 +435,30 @@ function checkCollision()
     targetPlayer = player1;
   }
 
-  let hitDistance = dist(activeBirdie.pos.x, activeBirdie.pos.y, targetPlayer.pos.x, targetPlayer.pos.y);
+  let hitDistance = dist(activeBirdie.pos.x, activeBirdie.pos.y, targetPlayer.pos.x, targetPlayer.pos.y); // Calculate distance between the birdie and the target player
 
   if(hitDistance < 60)
   {
     targetPlayer.currentHp -= 25;
     activeBirdie = null;
 
-    if(targetPlayer.currentHp < 0)
+    if(targetPlayer.currentHp <= 0)
     {
       targetPlayer.currentHp = 0;
+      gameState = "GAMEOVER";
+      winner = (currentPlayer === 1) ? "Player 1" : "Player 2";
+      activeBirdie = null;
+      return;
     }
     activeBirdie = null;
+    
     switchTurn();
   }
 }
 
 
 
-function switchTurn()
+function switchTurn() // Switch the current player after a turn is completed
 {
   if(currentPlayer  === 1)
   {
@@ -414,3 +469,5 @@ function switchTurn()
     currentPlayer = 1;
   }
 }
+
+
