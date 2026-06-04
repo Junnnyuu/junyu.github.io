@@ -1,3 +1,5 @@
+/* eslint-disable no-extra-parens */
+/* eslint-disable brace-style */
 // Project Title
 // Your Name
 // Date
@@ -23,8 +25,14 @@ let gameState = "PLAY"; // Game state variable to manage different phases of the
 let winner = "";
 
 
-function preload()
-{
+let worldWidth = 3000;
+let terrain = [];
+let camX = 0;
+
+
+
+
+function preload() {
   img_player1 = loadImage("assets/player_idle_1.png");
   img_player2 = loadImage("assets/player_idle_2.png");
   img_player3 = loadImage("assets/player_idle_3.png");
@@ -35,14 +43,22 @@ function preload()
   img_player6 = loadImage("assets/player_idle_6_right.png");
 }
 
-function setup() {
+
+function setup()
+{
   createCanvas(1200,600);
+  let noiseScale = 0.005;
+  for(let x = 0; x < worldWidth; x++)
+  {
+    let n = noise(x * noiseScale);
+    terrain[x] = map(n,0,1,380,530);
+  }
 
   let p1Frames = [img_player1, img_player2, img_player3];
   let p2Frames = [img_player4, img_player5, img_player6];
 
-  player1 = new Character(200, 480, 100, p1Frames, 1);
-  player2 = new Character(500, 480, 100, p2Frames, 2);
+  player1 = new Character(200, terrain[300] - 20, 100, p1Frames, 1);
+  player2 = new Character(2700, terrain[1700] - 20, 100, p2Frames, 2);
 
   dragStart = createVector(0,0);
   dragEnd = createVector(0,0);
@@ -52,17 +68,42 @@ function setup() {
 
 
 
-function draw() 
-{
 
-  if(gameState === "PLAY")
-  {
+
+function draw() {
+
+  if(gameState === "PLAY"){
     background(135,206,235);
 
+    let targetCamX = 0;
 
+    if(activeBirdie !== null)
+    {
+      targetCamX = activeBirdie.pos.x - width/2;
+    }
+
+    else
+    {
+      let activePlayer = (currentPlayer === 1) ? player1 : player2;
+      targetCamX = activePlayer.pos.x - width/2;
+    }
+    targetCamX = constrain(targetCamX, 0, worldWidth - width);
+    camX = lerp(camX, targetCamX,0.08);
+
+    push();
+    translate(-camX,0);
     fill(34,139,34);
     noStroke();
-    rect(0,500,width,100);// Ground
+    beginShape();
+    vertex(0,height);
+    for(let x = 0; x < worldWidth; x += 5)
+    {
+      vertex(x,terrain[x]);
+    }
+
+    vertex(worldWidth, height);
+    endShape(CLOSE);
+
   
     player1.updateAnimation(); // Update the animation state of the active player
     player2.updateAnimation();
@@ -73,11 +114,13 @@ function draw()
   
     handleAiming();
   
-    if(activeBirdie != null)
-    {
+    if(activeBirdie !== null) {
       activeBirdie.update();
       activeBirdie.display();
     }
+
+    pop();
+
   
     checkCollision();
   
@@ -86,19 +129,16 @@ function draw()
     textSize(24);
     textAlign(CENTER);
 
-    if(currentPlayer === 1)
-    {
+    if(currentPlayer === 1) {
       text("Player 1's Turn", width / 2, 50);
     }
-    else 
-    {
+    else {
       text("Player 2's Turn", width / 2, 50);
     }
 
   }
 
-  else if(gameState === "GAMEOVER")
-  {
+  else if(gameState === "GAMEOVER") {
     background(30);
     fill(255);
     textSize(50);
@@ -113,27 +153,27 @@ function draw()
 
 
 
-function handleAiming()
-{
-  if(isDragging)
-  {
-    dragEnd.set(mouseX, mouseY);
+function handleAiming() {
+  if(isDragging) {
+    let worldMouseX = mouseX + (typeof camX !== 'underfind' ? camX : 0);
+    dragEnd.set(worldMouseX, mouseY);
 
-    let aimVector = p5.Vector.sub(dragEnd, dragStart);
-    let maxDrag = 25;
+    let aimVector = p5.Vector.sub(dragStart, dragEnd);
 
-    if (aimVector.mag() > maxDrag) 
+    let maxDrag = 150;
+
+    if(aimVector.mag() > maxDrag)
     {
       aimVector.setMag(maxDrag);
     }
 
-    currentPower = round(map(aimVector.mag(), 0, maxDrag, 0, 100));
+    currentPower = round(map(aimVector.mag(), 0, maxDrag, 0 ,100));
 
     let rad = atan2(aimVector.y, aimVector.x);
 
     currentAngle = round(degrees(rad));
 
-    if(currentAngle < 0) 
+    if(currentAngle < 0)
     {
       currentAngle += 360;
     }
@@ -141,40 +181,26 @@ function handleAiming()
     let launchSpeed = map(currentPower, 0, 100, 0, 25);
     let VelX = cos(rad) * launchSpeed;
     let VelY = sin(rad) * launchSpeed;
-  
-    
-    if (currentPlayer === 2) {
-      VelX = -VelX;
-    }
 
-    
-    // x = x0 + vx*t, y = y0 + vy*t + 0.5*g*t^2
-    let startX = (currentPlayer === 1) ? player1.pos.x : player2.pos.x;
-    let startY = (currentPlayer === 1) ? player1.pos.y : player2.pos.y;
-    
+    let startX = currentPlayer === 1 ? player1.pos.x : player2.pos.x;
+    let startY = (currentPlayer === 1 ? player1.pos.y : player2.pos.y) - 30;
+
     stroke(255, 255, 255, 150);
     strokeWeight(4);
     noFill();
-
     
-    for (let i = 1; i <= 18; i++) 
-    {
+    for (let i = 1; i <= 18; i++) {
       let t = i * 1; 
-      let predX = startX + (VelX * t);
-      let predY = startY + (VelY * t) + (0.5 * gravity.y * t * t);
+      let predX = startX + VelX * t;
+      let predY = startY + VelY * t + 0.5 * gravity.y * t * t;
       ellipse(predX, predY, 5, 5);
     }
-
-    // HUD
-    drawHudBox(dragStart.x, dragStart.y - 120); // Draw the HUD box above the drag start point
+    drawHudBox(dragStart.x, dragStart.y - 70);
   }
-
-
 }
 
 
-function drawHudBox(x,y)
-{
+function drawHudBox(x,y) {
   push();// Save the current drawing state
   rectMode(CENTER);
   stroke(180);
@@ -200,7 +226,7 @@ function drawHudBox(x,y)
   textSize(14);
   fill(100,50,150);
 
-  text((360 - currentAngle) + "°", x + 40, y - 5); // Display angle in degrees, adjusting for player 2's perspective
+  text(360 - currentAngle + "°", x + 40, y - 5); // Display angle in degrees, adjusting for player 2's perspective
 
   textSize(9);
   fill(150);
@@ -212,24 +238,27 @@ function drawHudBox(x,y)
 
 
 
-function mousePressed()
-{
+function mousePressed() {
   let activePlayer;
-  if (currentPlayer === 1) 
-  {
+  if (currentPlayer === 1) {
     activePlayer = player1;
   } 
 
-  else 
-  {
+  else {
     activePlayer = player2;
   }
 
+  let worldMouseX = mouseX + camX;
 
-  if(dist(mouseX, mouseY, activePlayer.pos.x, activePlayer.pos.y) < 60) //if the mouse is within 60 pixels of the active player, start dragging 
+  if(dist(worldMouseX, mouseY, activePlayer.pos.x, activePlayer.pos.y) < 60) //if the mouse is within 60 pixels of the active player, start dragging 
+  // eslint-disable-next-line brace-style
   {
     isDragging = true;
     dragStart.set(mouseX, mouseY);
+    if (typeof dragEnd !== 'undefined') 
+    {
+      dragEnd.set(mouseX, mouseY);
+    }
   }
 }
 
@@ -237,21 +266,19 @@ function mousePressed()
 
 
 function mouseReleased() //mouse event
+// eslint-disable-next-line brace-style
 {
-  if(isDragging)
-  {
+  if(isDragging) {
     isDragging = false;
     let spawnX;
     let spawnY;
   
-    if(currentPlayer === 1)// Set the spawn position of the birdie based on the current player
-    {
+    if(currentPlayer === 1){// Set the spawn position of the birdie based on the current player
       spawnX = player1.pos.x;
       spawnY = player1.pos.y;
     }
 
-    else 
-    {
+    else {
       spawnX = player2.pos.x;
       spawnY = player2.pos.y;
     }
@@ -263,22 +290,15 @@ function mouseReleased() //mouse event
     let VelY = sin(rad) * launchSpeed;
 
 
-    if (currentPlayer === 2) 
-    {
-      VelX = -VelX;
-    }
-
     let launchVel = createVector(VelX, VelY);
   
     activeBirdie = new Birdie(spawnX, spawnY, launchVel, img_Birdie);
 
-    if(currentPlayer === 1)
-    {
+    if(currentPlayer === 1) {
       player1.strike();
     }
 
-    else
-    {
+    else {
       player2.strike();
     }
 
@@ -286,10 +306,8 @@ function mouseReleased() //mouse event
 }
 
 
-function keyPressed()
-{
-  if(gameState === "GAMEOVER" && (key === "r" || key === "R"))
-  {
+function keyPressed() {
+  if(gameState === "GAMEOVER" && (key === "r" || key === "R")) {
     player1.currentHp = player1.maxHp;
     player2.currentHp = player2.maxHp;
     currentPlayer = 1;
@@ -303,8 +321,7 @@ function keyPressed()
 
 class Character //class for the player characters
 {
-  constructor(x,y,maxHp,framsArray,side)
-  {
+  constructor(x,y,maxHp,framsArray,side) {
     this.pos = createVector(x,y);
     this.maxHp = maxHp;
     this.currentHp = maxHp;
@@ -320,8 +337,7 @@ class Character //class for the player characters
   }
 
 
-  display()
-  {
+  display() {
     push();
     imageMode(CENTER);
     let currentImg = this.frames[this.currentFrame]; // Get the current frame image based on the character's state
@@ -332,18 +348,14 @@ class Character //class for the player characters
   }
 
 
-  strike()
-  {
+  strike() {
     this.isStriking = true;
     this.currentFrame = 1;
   }
 
-  updateAnimation()
-  {
-    if(this.isStriking)
-    {
-      if(frameCount % 10 === 0)
-      {
+  updateAnimation() {
+    if(this.isStriking) {
+      if(frameCount % 10 === 0) {
         this.currentFrame ++;
         if(this.currentFrame >= this.frames.length) // Loop back to the first frame after the animation completes
         {
@@ -357,8 +369,7 @@ class Character //class for the player characters
   
 
 
-  drawHealthBar()
-  {
+  drawHealthBar() {
     push();
     rectMode(CORNER);
     fill(230,50,50);
@@ -376,11 +387,9 @@ class Character //class for the player characters
 
 
 
-class Birdie
-{
+class Birdie {
 
-  constructor(x,y,velocity,img)
-  {
+  constructor(x,y,velocity,img) {
     this.pos = createVector(x,y);
     this.vel = velocity;
     this.img = img;
@@ -388,14 +397,12 @@ class Birdie
     this.height = 40;
   }
 
-  update()
-  {
+  update() {
     this.vel.add(gravity);
     this.pos.add(this.vel);
   }
 
-  display()
-  {
+  display() {
     push();
 
     translate(this.pos.x, this.pos.y);
@@ -410,49 +417,59 @@ class Birdie
 
 
 
-function checkCollision()
-{
-  if(activeBirdie === null)
-  {
+function checkCollision() {
+  if(activeBirdie === null) {
     return;
   }
 
-  if(activeBirdie.pos.y >= 500)
+  let checkX = floor(activeBirdie.pos.x);
+
+  if(checkX >= 0 && checkX < worldWidth)
+  {
+    if(activeBirdie.pos.y >= terrain[checkX]) 
+    {
+      activeBirdie = null;
+      switchTurn();
+      return;
+    }
+  }
+
+  else
   {
     activeBirdie = null;
     switchTurn();
     return;
   }
 
+
   let targetPlayer;
-  if(currentPlayer === 1)
-  {
+  if(currentPlayer === 1) {
     targetPlayer = player2;//
   }
 
-  else
-  {
+  else {
     targetPlayer = player1;
   }
 
   let hitDistance = dist(activeBirdie.pos.x, activeBirdie.pos.y, targetPlayer.pos.x, targetPlayer.pos.y); // Calculate distance between the birdie and the target player
 
-  if(hitDistance < 60)
-  {
+  if(hitDistance < 60) {
     targetPlayer.currentHp -= 25;
     activeBirdie = null;
 
-    if(targetPlayer.currentHp <= 0)
-    {
+    if(targetPlayer.currentHp <= 0) {
       targetPlayer.currentHp = 0;
       gameState = "GAMEOVER";
-      winner = (currentPlayer === 1) ? "Player 1" : "Player 2";
-      activeBirdie = null;
-      return;
+
+      winner = currentPlayer === 1 ? "Player 1" : "Player 2";
     }
-    activeBirdie = null;
-    
-    switchTurn();
+
+    else
+    {
+      activeBirdie = null;
+      switchTurn();
+
+    }
   }
 }
 
@@ -460,12 +477,10 @@ function checkCollision()
 
 function switchTurn() // Switch the current player after a turn is completed
 {
-  if(currentPlayer  === 1)
-  {
+  if(currentPlayer  === 1) {
     currentPlayer = 2;
   }
-  else
-  {
+  else {
     currentPlayer = 1;
   }
 }
