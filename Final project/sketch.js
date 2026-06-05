@@ -58,12 +58,12 @@ function setup()
   let p2Frames = [img_player4, img_player5, img_player6];
 
   player1 = new Character(200, terrain[300] - 20, 100, p1Frames, 1);
-  player2 = new Character(2700, terrain[1700] - 20, 100, p2Frames, 2);
+  player2 = new Character(random(100,1500), terrain[1700] - 20, 100, p2Frames, 2);
 
   dragStart = createVector(0,0);
   dragEnd = createVector(0,0);
 
-  gravity = createVector(0,0.4);
+  gravity = createVector(0,0.3333);
 }
 
 
@@ -112,14 +112,14 @@ function draw() {
     player1.display();
     player2.display();
   
-    handleAiming();
-  
     if(activeBirdie !== null) {
       activeBirdie.update();
       activeBirdie.display();
     }
 
     pop();
+
+    handleAiming();
 
   
     checkCollision();
@@ -155,8 +155,7 @@ function draw() {
 
 function handleAiming() {
   if(isDragging) {
-    let worldMouseX = mouseX + (typeof camX !== 'underfind' ? camX : 0);
-    dragEnd.set(worldMouseX, mouseY);
+    dragEnd.set(mouseX, mouseY);
 
     let aimVector = p5.Vector.sub(dragStart, dragEnd);
 
@@ -189,18 +188,21 @@ function handleAiming() {
     strokeWeight(4);
     noFill();
     
+    push();
+    translate(-camX, 0);
     for (let i = 1; i <= 18; i++) {
       let t = i * 1; 
       let predX = startX + VelX * t;
       let predY = startY + VelY * t + 0.5 * gravity.y * t * t;
       ellipse(predX, predY, 5, 5);
     }
-    drawHudBox(dragStart.x, dragStart.y - 70);
+    pop();
+    drawHudBox(dragStart.x, dragStart.y - 70,currentPlayer);
   }
 }
 
 
-function drawHudBox(x,y) {
+function drawHudBox(x,y,player) {
   push();// Save the current drawing state
   rectMode(CENTER);
   stroke(180);
@@ -226,7 +228,8 @@ function drawHudBox(x,y) {
   textSize(14);
   fill(100,50,150);
 
-  text(360 - currentAngle + "°", x + 40, y - 5); // Display angle in degrees, adjusting for player 2's perspective
+  let displayAngle = (player === 1) ? (360 - currentAngle) : currentAngle;
+  text(displayAngle + "°", x + 40, y - 5);
 
   textSize(9);
   fill(150);
