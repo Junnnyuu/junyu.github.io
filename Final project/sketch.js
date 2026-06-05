@@ -21,7 +21,7 @@ let activeBirdie = null;
 let currentPlayer = 1;
 let gravity; // Gravity vector for the birdie's trajectory
 
-let gameState = "PLAY"; // Game state variable to manage different phases of the game (e.g., "PLAY", "GAMEOVER")
+let gameState = "MENU"; // Game state variable to manage different phases of the game (e.g., "PLAY", "GAMEOVER")
 let winner = "";
 
 
@@ -29,6 +29,10 @@ let worldWidth = 3000;
 let terrain = [];
 let camX = 0;
 
+
+let gameMode = "AI";
+let aiDifficulty = "MEDIUM";
+let isAITurn = false;
 
 
 
@@ -47,7 +51,7 @@ function preload() {
 function setup()
 {
   createCanvas(1200,600);
-  let noiseScale = 0.005;
+  let noiseScale = 0.007;
   for(let x = 0; x < worldWidth; x++)
   {
     let n = noise(x * noiseScale);
@@ -58,21 +62,27 @@ function setup()
   let p2Frames = [img_player4, img_player5, img_player6];
 
   player1 = new Character(200, terrain[300] - 20, 100, p1Frames, 1);
-  player2 = new Character(random(100,1500), terrain[1700] - 20, 100, p2Frames, 2);
+  player2 = new Character(random(1200,1500,), terrain[170] - 20, 100, p2Frames, 2);
 
   dragStart = createVector(0,0);
   dragEnd = createVector(0,0);
 
-  gravity = createVector(0,0.3333);
+  gravity = createVector(0,0.289);
 }
 
 
 
 
 
-function draw() {
 
-  if(gameState === "PLAY"){
+function draw() {
+  if (gameState === 'MENU') 
+  {
+    drawMenu(); 
+  }
+
+  if(gameState === "PLAYING")
+  {
     background(135,206,235);
 
     let targetCamX = 0;
@@ -138,7 +148,24 @@ function draw() {
 
   }
 
-  else if(gameState === "GAMEOVER") {
+  if (gameMode === 'AI' && currentPlayer === 2 && activeBirdie === null) 
+  {
+    if (!isAITurn)
+    {
+      takeAITurn();
+    }
+  } 
+  
+  else 
+  {
+    if (!(gameMode === 'AI' && currentPlayer === 2)) 
+    {
+      handleAiming(); 
+    }
+  }
+
+
+  if(gameState === "GAMEOVER") {
     background(30);
     fill(255);
     textSize(50);
@@ -150,6 +177,9 @@ function draw() {
   }
  
 }
+
+
+
 
 
 
@@ -177,7 +207,7 @@ function handleAiming() {
       currentAngle += 360;
     }
 
-    let launchSpeed = map(currentPower, 0, 100, 0, 25);
+    let launchSpeed = map(currentPower, 0, 100, 0, 20);
     let VelX = cos(rad) * launchSpeed;
     let VelY = sin(rad) * launchSpeed;
 
@@ -200,6 +230,10 @@ function handleAiming() {
     drawHudBox(dragStart.x, dragStart.y - 70,currentPlayer);
   }
 }
+
+
+
+
 
 
 function drawHudBox(x,y,player) {
@@ -239,28 +273,81 @@ function drawHudBox(x,y,player) {
 }
 
 
+function isClicked(x,y,w,h)
+{
+  return (mouseX > x - w/2 && mouseX < x + w/2 && mouseY > y - h/2 && mouseY < y + h/2);
+}
+
+
+
 
 
 function mousePressed() {
-  let activePlayer;
-  if (currentPlayer === 1) {
-    activePlayer = player1;
-  } 
 
-  else {
-    activePlayer = player2;
+  if (gameState === 'MENU') {
+    let btnX = width / 2;
+    let btnW = 280;
+    let btnH = 50;
+
+    if (isClicked(btnX, height / 2 - 40, btnW, btnH)) {
+      gameMode = 'AI';
+      gameState = 'PLAYING'; 
+    } 
+
+
+
+    else if (isClicked(btnX, height / 2 + 30, btnW, btnH)) {
+      gameMode = 'AI';
+      aiDifficulty = 'EASY';
+      gameState = 'PLAYING';
+    } 
+  
+
+
+    else if (isClicked(btnX, height / 2 + 100, btnW, btnH)) {
+      gameMode = 'AI';
+      aiDifficulty = 'MEDIUM';
+      gameState = 'PLAYING';
+    } 
+ 
+
+    else if (isClicked(btnX, height / 2 + 170, btnW, btnH)) {
+      gameMode = 'AI';
+      aiDifficulty = 'HARD';
+      gameState = 'PLAYING';
+    }
+    
+    return;
+
   }
 
-  let worldMouseX = mouseX + camX;
-
-  if(dist(worldMouseX, mouseY, activePlayer.pos.x, activePlayer.pos.y) < 60) //if the mouse is within 60 pixels of the active player, start dragging 
-  // eslint-disable-next-line brace-style
-  {
-    isDragging = true;
-    dragStart.set(mouseX, mouseY);
-    if (typeof dragEnd !== 'undefined') 
+  if (gameState === 'PLAYING') {
+    if (gameMode === 'AI' && currentPlayer === 2) {
+      return; 
+    }
+    
+    let activePlayer;
+    if (currentPlayer === 1) 
     {
-      dragEnd.set(mouseX, mouseY);
+      activePlayer = player1;
+    } 
+
+    else 
+    {
+    activePlayer = player2;
+  ``}
+
+    let worldMouseX = mouseX + camX;
+
+    if(dist(worldMouseX, mouseY, activePlayer.pos.x, activePlayer.pos.y) < 60) //if the mouse is within 60 pixels of the active player, start dragging 
+    // eslint-disable-next-line brace-style
+    {
+      isDragging = true;
+      dragStart.set(mouseX, mouseY);
+      if (typeof dragEnd !== 'undefined') 
+      {
+        dragEnd.set(mouseX, mouseY);
+      }
     }
   }
 }
@@ -315,7 +402,7 @@ function keyPressed() {
     player2.currentHp = player2.maxHp;
     currentPlayer = 1;
     activeBirdie = null;
-    gameState = "PLAY";
+    gameState = "PLAYING";
   }
 }
 
@@ -396,8 +483,8 @@ class Birdie {
     this.pos = createVector(x,y);
     this.vel = velocity;
     this.img = img;
-    this.width = 40;
-    this.height = 40;
+    this.width = 20;
+    this.height = 20;
   }
 
   update() {
@@ -478,6 +565,9 @@ function checkCollision() {
 
 
 
+
+
+
 function switchTurn() // Switch the current player after a turn is completed
 {
   if(currentPlayer  === 1) {
@@ -488,4 +578,97 @@ function switchTurn() // Switch the current player after a turn is completed
   }
 }
 
+function takeAITurn() {
+  isAITurn = true; 
+
+  
+  setTimeout(() => {
+   
+    let dx = abs(player1.pos.x - player2.pos.x); 
+    
+    
+    let perfectSpeed = sqrt(dx * gravity.y); 
+    
+    
+    let idealAngle = 225; 
+    let idealPower = map(perfectSpeed, 0, 25, 0, 100); 
+
+    
+    let error = 0;
+    if (aiDifficulty === 'EASY') {
+      error = random(-30, 30); 
+    } else if (aiDifficulty === 'MEDIUM') {
+      error = random(-10, 10); 
+    } else if (aiDifficulty === 'HARD') {
+      error = random(-2, 2);  
+    }
+
+   
+    let finalPower = constrain(idealPower + error, 10, 100);
+    
+    let finalAngle = idealAngle + random(-error/2, error/2); 
+
+    
+    let launchSpeed = map(finalPower, 0, 100, 0, 25);
+    let rad = radians(finalAngle);
+
+    let VelX = cos(rad) * launchSpeed;
+    let VelY = sin(rad) * launchSpeed;
+    let launchVel = createVector(VelX, VelY);
+    
+    let spawnX = player2.pos.x;
+    let spawnY = player2.pos.y - 30; 
+
+    activeBirdie = new Birdie(spawnX, spawnY, launchVel, img_Birdie);
+    player2.strike();
+    
+    isAITurn = false;
+  }, 1500);
+}
+
+
+
+
+
+
+function drawMenu() {
+  push();
+  background(40, 45, 60); 
+  
+  
+  textAlign(CENTER, CENTER);
+  textSize(50);
+  fill(255);
+  text("BADMINTON BATTLE", width / 2, height / 3 - 50);
+
+  drawButton("PVP (Double play)", width / 2, height / 2 - 40, 280, 50);
+  drawButton("YOU VS AI (Easy mode)", width / 2, height / 2 + 30, 280, 50);
+  drawButton("YOU VS AI (Medium mode)", width / 2, height / 2 + 100, 280, 50);
+  drawButton("YOU VS AI (hard mode)", width / 2, height / 2 + 170, 280, 50);
+  pop();
+}
+
+
+
+
+
+function drawButton(label, x, y, w, h) {
+  rectMode(CENTER);
+  
+  
+  if (mouseX > x - w/2 && mouseX < x + w/2 && mouseY > y - h/2 && mouseY < y + h/2) {
+    fill(255, 200, 0); 
+  } else {
+    fill(230);         
+  }
+  
+  stroke(0);
+  strokeWeight(2);
+  rect(x, y, w, h, 10); 
+
+  fill(50);
+  noStroke();
+  textSize(20);
+  text(label, x, y);
+}
 
