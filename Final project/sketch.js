@@ -34,9 +34,15 @@ let camX = 0;
 
 
 let gameMode = "AI";
+
+let aiShotCount = 0;
 let aiDifficulty = "MEDIUM";
 let isAITurn = false;
 
+let totalTurns = 0;
+
+let terrainDifficulty = "EASY";
+let isDynamicTerrain = false;
 
 
 function preload() {
@@ -50,27 +56,42 @@ function preload() {
   img_player6 = loadImage("assets/player_idle_6_right.png");
 }
 
+function setup() {
+  createCanvas(1200, 600);
+  
+ 
+  let noiseOffset = random(10000); 
+  
 
-function setup()
-{
-  createCanvas(1200,600);
-  let noiseScale = 0.007;
-  for(let x = 0; x < worldWidth; x++)
-  {
-    let n = noise(x * noiseScale);
-    terrain[x] = map(n,0,1,380,530);
+  let noiseScale = 0.003; 
+
+  for(let x = 0; x < worldWidth; x++) {
+   
+    let n = noise(x * noiseScale + noiseOffset);
+    
+
+    terrain[x] = map(n, 0.25, 0.75, 100, 480);
+    
+   
+    terrain[x] = constrain(terrain[x], 50, 480);
   }
 
   let p1Frames = [img_player1, img_player2, img_player3];
   let p2Frames = [img_player4, img_player5, img_player6];
 
-  player1 = new Character(200, terrain[300] - 20, 100, p1Frames, 1);
-  player2 = new Character(random(1200,1500,), terrain[170] - 20, 100, p2Frames, 2);
+  let player1X = random(100, 400);
+  let player1Y = terrain[floor(player1X)] - 50; // 50 is half the character height (100/2)
+  player1 = new Character(player1X, player1Y, 100, p1Frames, 1);
+  
+
+  let player2X = random(1300, 1800); 
+  let player2Y = terrain[floor(player2X)] - 50; // 50 is half the character height (100/2)
+  player2 = new Character(player2X, player2Y, 100, p2Frames, 2);
 
   dragStart = createVector(0,0);
   dragEnd = createVector(0,0);
 
-  gravity = createVector(0,0.289);
+  gravity = createVector(0, 0.289);
 }
 
 
@@ -84,7 +105,12 @@ function draw() {
     drawMenu(); 
   }
 
-  if(gameState === "PLAYING")
+  else if (gameState === 'TERRAIN_SELECT') 
+  {
+    drawTerrainSelect(); 
+  }
+
+  else if(gameState === "PLAYING")
   {
     background(135,206,235);
 
@@ -145,55 +171,99 @@ function draw() {
 
     drawLookButton();
 
-    handleAiming();
-
-  
-    checkCollision();
-  
-  
     fill(0);
     textSize(24);
     textAlign(CENTER);
-
-    if(currentPlayer === 1) {
+    if (currentPlayer === 1) 
+    {
       text("Player 1's Turn", width / 2, 50);
-    }
-    else {
+    } 
+    
+    else 
+    {
       text("Player 2's Turn", width / 2, 50);
     }
 
-  }
-
-  if (gameMode === 'AI' && currentPlayer !== humanPlayerId && activeBirdie === null) 
-  {
-    if (!isAITurn) 
+    // 
+    if (gameMode === 'AI' && currentPlayer !== humanPlayerId && activeBirdie === null) {
+      if (!isAITurn) 
+      {
+        takeAITurn(); 
+      }
+    } 
+    
+    else 
     {
-      takeAITurn(); 
+      if (!(gameMode === 'AI' && currentPlayer !== humanPlayerId) && !isObserving) {
+        handleAiming(); 
+      }
     }
+    
+    checkCollision();
   } 
-
-  else 
+  else if (gameState === "GAMEOVER") 
   {
-    if(!(gameMode === 'AI' && currentPlayer !== humanPlayerId) && !isObserving) 
-    {
-      handleAiming(); 
-    }
-  }
-
-
-  if(gameState === "GAMEOVER") {
     background(30);
     fill(255);
     textSize(50);
-    textAlign(winner + "WINS", width/2, height/2 - 50);
+    textAlign(CENTER, CENTER); 
+    text(winner + " WINS", width / 2, height / 2 - 50); 
 
     textSize(20);
-    textAlign("Press R to restart", width/2,height/2 + 30);
-
+    text("Press R to restart", width / 2, height / 2 + 30);
   }
  
 }
 
+
+
+
+
+
+function drawTerrainSelect() {
+  background(50, 80, 120);
+  textAlign(CENTER, CENTER);
+  
+  // 
+  fill(255);
+  textSize(40);
+  text("SELECT TERRAIN DIFFICULTY", width / 2, 100);
+
+  // 
+  textSize(25);
+  
+  // 
+  fill(terrainDifficulty === 'EASY' ? color(0, 255, 0) : color(200));
+  rect(width/2 - 250, 200, 150, 60, 10);
+  fill(0); text("EASY", width/2 - 175, 230);
+
+  // 
+  fill(terrainDifficulty === 'MEDIUM' ? color(255, 200, 0) : color(200));
+  rect(width/2 - 75, 200, 150, 60, 10);
+  fill(0); text("MEDIUM", width/2, 230);
+
+  // 
+  fill(terrainDifficulty === 'HARD' ? color(255, 0, 0) : color(200));
+  rect(width/2 + 100, 200, 150, 60, 10);
+  fill(0); text("HARD", width/2 + 175, 230);
+
+  // 
+  fill(255);
+  textSize(30);
+  text("DYNAMIC TERRAIN (Randomize each round):", width/2, 350);
+  
+  fill(isDynamicTerrain ? color(0, 255, 0) : color(255, 100, 100));
+  rect(width/2 - 75, 380, 150, 60, 10);
+  fill(0);
+  text(isDynamicTerrain ? "ON" : "OFF", width/2, 410);
+
+  // -
+  fill(100, 200, 255);
+  rect(width/2 - 125, 500, 250, 70, 15);
+  fill(0);
+  textSize(35);
+  text("START GAME", width/2, 535);
+}
 
 
 
@@ -308,7 +378,7 @@ function mousePressed() {
 
     if (isClicked(btnX, height / 2 - 40, btnW, btnH)) {
       gameMode = 'PVP';
-      gameState = 'PLAYING'; 
+      gameState = 'TERRAIN_SELECT'; 
     } 
 
 
@@ -317,7 +387,7 @@ function mousePressed() {
       gameMode = 'AI';
       aiDifficulty = 'EASY';
       humanPlayerId = random([1, 2]);
-      gameState = 'PLAYING';
+      gameState = 'TERRAIN_SELECT';
     } 
   
 
@@ -326,7 +396,7 @@ function mousePressed() {
       gameMode = 'AI';
       aiDifficulty = 'MEDIUM';
       humanPlayerId = random([1, 2]);
-      gameState = 'PLAYING';
+      gameState = 'TERRAIN_SELECT';
     } 
  
 
@@ -334,12 +404,55 @@ function mousePressed() {
       gameMode = 'AI';
       aiDifficulty = 'HARD';
       humanPlayerId = random([1, 2]);
-      gameState = 'PLAYING';
+      gameState = 'TERRAIN_SELECT';
     }
     
     return;
 
   }
+
+
+
+  if (gameState === 'TERRAIN_SELECT') {
+    
+    if (mouseX > width/2 - 250 && mouseX < width/2 - 100 && mouseY > 200 && mouseY < 260) 
+    {
+      terrainDifficulty = 'EASY';
+    }
+    //
+    else if (mouseX > width/2 - 75 && mouseX < width/2 + 75 && mouseY > 200 && mouseY < 260) 
+    {
+      terrainDifficulty = 'MEDIUM';
+    }
+    // 
+    else if (mouseX > width/2 + 100 && mouseX < width/2 + 250 && mouseY > 200 && mouseY < 260) 
+    {
+      terrainDifficulty = 'HARD';
+    }
+    
+    // 
+    else if (mouseX > width/2 - 75 && mouseX < width/2 + 75 && mouseY > 380 && mouseY < 440) 
+    {
+      isDynamicTerrain = !isDynamicTerrain; // 
+    }
+    
+    // 
+    else if (mouseX > width/2 - 125 && mouseX < width/2 + 125 && mouseY > 500 && mouseY < 570) 
+    {
+      generateTerrain(); // 
+      
+      // 
+      player1.pos.y = terrain[floor(player1.pos.x)] - 50;
+      player2.pos.y = terrain[floor(player2.pos.x)] - 50;
+      
+      gameState = 'PLAYING'; //
+    }
+    return; 
+  }
+
+
+
+
 
   if (gameState === 'PLAYING') {
 
@@ -350,7 +463,7 @@ function mousePressed() {
 
     let btnX = width - 60;
     let btnY = 60;
-    if (dist(mouseX, mouseY, btnX, btnY) < 30 && activeBirdie === null) 
+    if (dist(mouseX, mouseY, btnX - 180, btnY) < 30 && activeBirdie === null) 
     {
       if (!isObserving) 
       {
@@ -441,6 +554,8 @@ function mouseReleased() //mouse event
 }
 
 
+
+
 function keyPressed() {
   if(gameState === "GAMEOVER" && (key === "r" || key === "R")) {
     player1.currentHp = player1.maxHp;
@@ -450,6 +565,7 @@ function keyPressed() {
     gameState = "PLAYING";
   }
 }
+
 
 
 
@@ -621,35 +737,121 @@ function switchTurn() // Switch the current player after a turn is completed
   else {
     currentPlayer = 1;
   }
+
+
+  totalTurns++; //
+
+  // 
+  if (isDynamicTerrain && totalTurns % 2 === 0) {
+    
+    //
+    generateTerrain(); 
+    
+    //
+    // 
+    player1.pos.y = terrain[floor(player1.pos.x)] - 50;
+    player2.pos.y = terrain[floor(player2.pos.x)] - 50;
+    
+    // 
+  }
 }
 
+
+
+
+
 function takeAITurn() {
- isAITurn = true; 
+  isAITurn = true; 
+  aiShotCount++; 
 
   setTimeout(() => {
-    
-
     let aiPlayer = (humanPlayerId === 1) ? player2 : player1;
-
     let targetPlayer = (humanPlayerId === 1) ? player1 : player2;
 
+    // ==========================================
+    //
+    // ==========================================
     let dx = abs(targetPlayer.pos.x - aiPlayer.pos.x); 
+    let dy = targetPlayer.pos.y - aiPlayer.pos.y; 
+    
+    // 
+    let yUp = -dy; 
 
-    let perfectSpeed = sqrt(dx * gravity.y); 
+    // ==========================================
+    // 
+    // ==========================================
+    let dist = sqrt(dx * dx + yUp * yUp);
     
+    // 
+    let perfectSpeed = sqrt(gravity.y * (dist + yUp)); 
     
-    let idealAngle = (aiPlayer === player1) ? 315 : 225;
+    // 
+    let optimalAngleRad = atan2(yUp + dist, dx); 
+    let optimalAngleDeg = degrees(optimalAngleRad);
+
+    // 
+    let idealAngle;
+    if (aiPlayer.pos.x > targetPlayer.pos.x) {
+      // 
+      idealAngle = 180 + optimalAngleDeg; 
+    } else {
+      // 
+      idealAngle = 360 - optimalAngleDeg; 
+    }
 
     let idealPower = map(perfectSpeed, 0, 25, 0, 100); 
 
-    let error = 0;
-    if (aiDifficulty === 'EASY') error = random(-30, 30);
-    else if (aiDifficulty === 'MEDIUM') error = random(-10, 10);
-    else if (aiDifficulty === 'HARD') error = random(-2, 2);
+    // ==========================================
+    // 3. 
+    // ==========================================
+    let powerError = 0;
+    let angleError = 0;
+    
+    // 地形难度修正系数 (HARD terrain时减少误差)
+    let terrainModifier = 1.0;
+    if (terrainDifficulty === 'HARD') {
+      terrainModifier = 0.6; // Hard terrain时命中率提高40%
+    } else if (terrainDifficulty === 'MEDIUM') {
+      terrainModifier = 0.8; // Medium terrain时命中率提高20%
+    }
 
-    let finalPower = constrain(idealPower + error, 10, 100);
-    let finalAngle = idealAngle + random(-error/2, error/2); 
+    if (aiDifficulty === 'EASY') {
+      powerError = random(-20, 20) * terrainModifier;
+      angleError = random(-15, 15) * terrainModifier;
+    } 
+    else if (aiDifficulty === 'MEDIUM') {
+      powerError = random(-10, 10) * terrainModifier;
+      angleError = random(-8, 8) * terrainModifier;
+    } 
+    else if (aiDifficulty === 'HARD') {
+      // 
 
+      if (aiShotCount === 1) {
+        // 
+
+        powerError = random(-8, 8) * terrainModifier; 
+        angleError = random(-5, 5) * terrainModifier;
+      } else if (aiShotCount === 2) {
+        // 
+
+        powerError = random(-3, 3) * terrainModifier; 
+        angleError = random(-2, 2) * terrainModifier;
+      } else {
+        // 
+
+        powerError = random(-0.5, 0.5) * terrainModifier; 
+        angleError = random(-0.5, 0.5) * terrainModifier;
+      }
+    }
+
+    // 
+
+    let finalPower = constrain(idealPower + powerError, 10, 100);
+    let finalAngle = idealAngle + angleError; 
+
+    // ==========================================
+    // 4. 
+    // ==========================================
     let launchSpeed = map(finalPower, 0, 100, 0, 25);
     let rad = radians(finalAngle);
 
@@ -664,6 +866,8 @@ function takeAITurn() {
     isAITurn = false; 
   }, 1500);
 }
+
+
 
 
 
@@ -722,25 +926,59 @@ function drawLookButton() {
 
   push();
 
-  let btnX = width - 900;
-  let btnY = 50;
-  let btnSize = 110;
+  let btnX = width - 60;
+  let btnY = 60;
+  let btnSize = 70;
 
 
-  let isHover = dist(mouseX, mouseY, btnX, btnY) < btnSize / 2;
+  let isHover = dist(mouseX, mouseY, btnX - 180, btnY) < btnSize / 2;
 
   fill(isHover ? color(200, 200, 250) : color(255, 255, 255, 220));
   
   stroke(100, 50, 150);
   strokeWeight(3);
   rectMode(CENTER);
-  rect(btnX, btnY, btnSize, btnSize - 50, 10); 
+  circle(btnX - 180, btnY, btnSize); 
   
 
   noStroke();
   fill(100, 50, 150);
   textAlign(CENTER, CENTER);
-  textSize(12);
-  text("<<< LOOK PLAYER >>>", btnX, btnY);
+  textSize(10);
+  text("LOOK Player", btnX - 180, btnY);
   pop();
+}
+
+
+function generateTerrain() {
+  let noiseOffset = random(10000); //
+  let noiseScale = 0.003; 
+
+  for(let x = 0; x < worldWidth; x++) { // 
+    let n = noise(x * noiseScale + noiseOffset);
+    
+    //
+    if (terrainDifficulty === 'EASY') 
+    {
+
+      // 
+      terrain[x] = map(n, 0, 1, 400, 600);
+    } 
+
+    else if (terrainDifficulty === 'MEDIUM') 
+    {
+
+      //
+      terrain[x] = map(n, 0.15, 0.85, 250, 550);
+    } 
+
+    else if (terrainDifficulty === 'HARD') 
+      {
+      // 
+      terrain[x] = map(n, 0.25, 0.75, 100, 580);
+    }
+    
+    // 
+    terrain[x] = constrain(terrain[x], 50, 580);
+  }
 }
