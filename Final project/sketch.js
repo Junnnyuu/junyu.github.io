@@ -24,6 +24,10 @@ let gravity; // Gravity vector for the birdie's trajectory
 let gameState = "MENU"; // Game state variable to manage different phases of the game (e.g., "PLAY", "GAMEOVER")
 let winner = "";
 
+// ==========================================
+// STEP 2: Floating damage text effect system
+// ==========================================
+let damageTexts = []; // Array to store all floating damage text effects on screen
 
 let worldWidth = 3000;
 let terrain = [];
@@ -165,6 +169,18 @@ function draw() {
     if(activeBirdie !== null) {
       activeBirdie.update();
       activeBirdie.display();
+    }
+
+    // ==========================================
+    // STEP 2: Render floating damage text effects
+    // Update and display all active damage text in the damage texts array
+    // ==========================================
+    for (let i = damageTexts.length - 1; i >= 0; i--) {
+      damageTexts[i].update();
+      damageTexts[i].display();
+      if (damageTexts[i].life <= 0) {
+        damageTexts.splice(i, 1); // Remove from array after animation completes
+      }
     }
 
     pop();
@@ -574,8 +590,9 @@ class Character //class for the player characters
 {
   constructor(x,y,maxHp,framsArray,side) {
     this.pos = createVector(x,y);
-    this.maxHp = maxHp;
-    this.currentHp = maxHp;
+    this.maxHp = 15; // Set total HP to 15 (overrides the maxHp parameter)
+    this.currentHp = 15; // Initial HP set to 15
+    this.hp = 15; // Alias for health value
 
 
     this.frames = framsArray; // Array of images for the character's animation frames (idle, striking, etc.)
@@ -585,6 +602,11 @@ class Character //class for the player characters
 
     this.width = 50;
     this.heights = 100;
+
+    // 🌟 Hit feedback system
+    this.hitFlashTimer = 0; // Timer for hit flash effect
+    this.hitFlashDuration = 15; // Duration of flash (frames)
+    this.lastHitBodyPart = null; // Track which body part was hit: "HEAD", "BODY", "LEGS"
   }
 
 
@@ -592,8 +614,20 @@ class Character //class for the player characters
     push();
     imageMode(CENTER);
     let currentImg = this.frames[this.currentFrame]; // Get the current frame image based on the character's state
+    
+    // 🌟 Add flash effect when hit
+    if (this.hitFlashTimer > 0) {
+      // Create white flash overlay for hit feedback
+      tint(255, 255, 255, 150);
+    }
+    
     image(currentImg,this.pos.x,this.pos.y,this.width,this.heights);
     pop();
+
+    // 🌟 Draw hit location indicator (colored circle at hit body part)
+    if (this.hitFlashTimer > 0) {
+      this.drawHitIndicator();
+    }
 
     this.drawHealthBar();
   }
@@ -602,6 +636,51 @@ class Character //class for the player characters
   strike() {
     this.isStriking = true;
     this.currentFrame = 1;
+  }
+
+  // 🌟 Record hit for visual feedback
+  recordHit(bodyPart) {
+    this.hitFlashTimer = this.hitFlashDuration;
+    this.lastHitBodyPart = bodyPart; // "HEAD", "BODY", or "LEGS"
+  }
+
+  // 🌟 Draw visual indicator of hit body part
+  drawHitIndicator() {
+    push();
+    let indicatorY = this.pos.y;
+    let indicatorColor = color(255, 200, 100); // Default color
+    let indicatorSize = 30;
+
+    // Determine color and position based on hit body part
+    if (this.lastHitBodyPart === "HEAD") {
+      indicatorY = this.pos.y - 40; // Head position
+      indicatorColor = color(255, 0, 0, 200); // Red for headshot
+      indicatorSize = 40;
+    } 
+    else if (this.lastHitBodyPart === "BODY") {
+      indicatorY = this.pos.y - 10; // Body position
+      indicatorColor = color(255, 150, 0, 200); // Orange for body hit
+      indicatorSize = 35;
+    } 
+    else if (this.lastHitBodyPart === "LEGS") {
+      indicatorY = this.pos.y + 30; // Legs position
+      indicatorColor = color(255, 200, 0, 200); // Yellow for leg hit
+      indicatorSize = 30;
+    }
+
+    // Draw pulsing circle at hit location
+    let pulseSize = indicatorSize * (1 + 0.5 * sin(frameCount * 0.3));
+    fill(indicatorColor);
+    noStroke();
+    circle(this.pos.x, indicatorY, pulseSize);
+    
+    // Draw outer ring
+    noFill();
+    stroke(indicatorColor);
+    strokeWeight(2);
+    circle(this.pos.x, indicatorY, pulseSize + 10);
+    
+    pop();
   }
 
   updateAnimation() {
@@ -614,6 +693,11 @@ class Character //class for the player characters
           this.isStriking = false;
         }
       }
+    }
+
+    // 🌟 Update hit flash timer
+    if (this.hitFlashTimer > 0) {
+      this.hitFlashTimer--;
     }
   }
 
@@ -668,58 +752,89 @@ class Birdie {
 
 
 
+// ==========================================
+// STEP 3: Completely Fair Multi-Part Collision & Damage System
+// Ensures absolute fairness: same detection logic for both player and AI
+// ==========================================
 function checkCollision() {
-  if(activeBirdie === null) {
-    return;
-  }
+  if (activeBirdie === null) return;
 
   let checkX = floor(activeBirdie.pos.x);
 
-  if(checkX >= 0 && checkX < worldWidth)
-  {
-    if(activeBirdie.pos.y >= terrain[checkX]) 
-    {
+  // Check if birdie hits the terrain (ground)
+  if (checkX >= 0 && checkX < worldWidth) {
+    if (activeBirdie.pos.y >= terrain[checkX]) {
       activeBirdie = null;
       switchTurn();
       return;
     }
-  }
-
-  else
-  {
+  } else {
     activeBirdie = null;
     switchTurn();
     return;
   }
 
+  // 🌟 Auto-determines who gets hit: ensures absolute fairness for both player and AI
+  let targetPlayer = (currentPlayer === 1) ? player2 : player1;
+  
+  let bx = activeBirdie.pos.x;
+  let by = activeBirdie.pos.y;
+  let px = targetPlayer.pos.x;
+  let py = targetPlayer.pos.y; // Player's foot position (ground level Y coordinate)
 
-  let targetPlayer;
-  if(currentPlayer === 1) {
-    targetPlayer = player2;//
-  }
+  // Judge if birdie enters the player's X-axis range (distance < 35 pixels for more accurate hit detection)
+  if (abs(bx - px) < 35) {
+    
+    let damage = 0;
+    let msg = "";
+    let isHeadshot = false;
 
-  else {
-    targetPlayer = player1;
-  }
-
-  let hitDistance = dist(activeBirdie.pos.x, activeBirdie.pos.y, targetPlayer.pos.x, targetPlayer.pos.y); // Calculate distance between the birdie and the target player
-
-  if(hitDistance < 60) {
-    targetPlayer.currentHp -= 25;
-    activeBirdie = null;
-
-    if(targetPlayer.currentHp <= 0) {
-      targetPlayer.currentHp = 0;
-      gameState = "GAMEOVER";
-
-      winner = currentPlayer === 1 ? "Player 1" : "Player 2";
+    // --- 🌟 Core Body Part Detection (Head to Feet) ---
+    // Character height is 100 pixels with pos.y at center
+    // Head is at top ~40px above center, feet at ~50px below center
+    // 【Head】: Top section (player's head area)
+    if (by < py - 30) { 
+      damage = 3;
+      msg = "HEADSHOT -3";
+      isHeadshot = true;
+    } 
+    // 【Hand/Body】: Middle section (torso and arms)
+    else if (by >= py - 30 && by < py + 20) { 
+      damage = 2;
+      msg = "HIT BODY -2";
+    } 
+    // 【Feet】: Lower section (legs and feet)
+    else if (by >= py + 20 && by <= py + 55) { 
+      damage = 1;
+      msg = "HIT LEGS -1";
     }
 
-    else
-    {
-      activeBirdie = null;
-      switchTurn();
-
+    // --- 🌟 Deduct Health & Display Damage Text ---
+    if (damage > 0) {
+      targetPlayer.hp -= damage; // Deduct corresponding health
+      targetPlayer.currentHp -= damage; // Update currentHp as well
+      
+      // 🌟 Record hit for visual feedback on target player
+      let bodyPartHit = isHeadshot ? "HEAD" : (by >= py - 30 && by < py + 20) ? "BODY" : "LEGS";
+      targetPlayer.recordHit(bodyPartHit);
+      
+      // Generate floating damage text at hit location!
+      damageTexts.push(new FloatingText(msg, px, by - 20, isHeadshot));
+      
+      activeBirdie = null; // Birdie disappears
+      
+      // Check if the hit player's health is zero
+      if (targetPlayer.hp <= 0) {
+        gameState = "GAMEOVER";
+        if (currentPlayer === 1) {
+          winner = "Player 1 ";
+        } else {
+          winner = (gameMode === 'AI') ? "AI " : "Player 2 ";
+        }
+      } else {
+        // If not defeated, switch turns
+        switchTurn();
+      }
     }
   }
 }
@@ -769,10 +884,49 @@ function takeAITurn() {
     let targetPlayer = (humanPlayerId === 1) ? player1 : player2;
 
     // ==========================================
-    //
+    // STEP 1: AI Aiming Logic with Height Offset
+    // Calculate physical data and add target Y offset (different difficulties target different body parts)
     // ==========================================
-    let dx = abs(targetPlayer.pos.x - aiPlayer.pos.x); 
-    let dy = targetPlayer.pos.y - aiPlayer.pos.y; 
+    let dx = abs(targetPlayer.pos.x - aiPlayer.pos.x);
+    
+    // ==========================================
+    // AI Aiming Probability Distribution (Optimized Version)
+    // Represents AI's "intention" to hit different body parts, but actual result depends on physics errors
+    // ==========================================
+    let targetYOffset = 0; 
+    let aimRoll = random(100); // Roll dice: 0 to 100
+
+    if (aiDifficulty === 'HARD') {
+      // Hard difficulty: 20% chance to aim head, 50% chance to aim body, 30% chance to aim legs
+      if (aimRoll < 20) {
+        targetYOffset = -40; // Aim at head
+      } else if (aimRoll < 70) {
+        targetYOffset = -25; // Aim at body
+      } else {
+        targetYOffset = -10; // Aim at legs
+      }
+    } 
+    else if (aiDifficulty === 'MEDIUM') {
+      // Medium difficulty: 10% chance to aim head, 50% chance to aim body, 40% chance to aim legs
+      if (aimRoll < 10) {
+        targetYOffset = -40; // Aim at head
+      } else if (aimRoll < 60) {
+        targetYOffset = -25; // Aim at body
+      } else {
+        targetYOffset = -10; // Aim at legs
+      }
+    } 
+    else {
+      // Easy difficulty: 0% chance to aim head, 30% chance to aim body, 70% chance to aim legs or ground (more mistakes)
+      if (aimRoll < 30) {
+        targetYOffset = -25; // Aim at body
+      } else {
+        targetYOffset = random(-10, 5); // Aim at legs or even ground (easier to miss)
+      }
+    }
+
+    // Add confirmed aiming height into physics calculation
+    let dy = (targetPlayer.pos.y + targetYOffset) - aiPlayer.pos.y;
     
     // 
     let yUp = -dy; 
@@ -980,5 +1134,43 @@ function generateTerrain() {
     
     // 
     terrain[x] = constrain(terrain[x], 50, 580);
+  }
+}
+
+
+
+// ==========================================
+// STEP 2: Floating Text Effect Class
+// Handles displaying damage numbers with fade animation and upward movement
+// ==========================================
+class FloatingText {
+  constructor(txt, x, y, isHeadshot) {
+    this.txt = txt;
+    this.x = x;
+    this.y = y;
+    this.life = 60; // Text lifespan (60 frames = 1 second at 60 fps)
+    this.isHeadshot = isHeadshot;
+  }
+  
+  update() {
+    this.y -= 1;  // Float text upward slowly
+    this.life--;
+  }
+  
+  display() {
+    push();
+    textAlign(CENTER, CENTER);
+    if (this.isHeadshot) {
+      // Headshot: large red text with fade effect (displays special icon)
+      fill(255, 0, 0, map(this.life, 0, 60, 0, 255)); // Red color with opacity fade
+      textSize(28);
+      text("✖ " + this.txt, this.x, this.y);
+    } else {
+      // Normal hit: smaller white text with fade effect
+      fill(255, map(this.life, 0, 60, 0, 255)); // White with opacity fade
+      textSize(18);
+      text(this.txt, this.x, this.y);
+    }
+    pop();
   }
 }
