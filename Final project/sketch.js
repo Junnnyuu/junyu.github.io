@@ -34,6 +34,7 @@ let terrain = [];
 
 let humanPlayerId = 1;   
 let isObserving = false;
+
 let camX = 0;
 
 
@@ -61,7 +62,7 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(1200, 600);
+  createCanvas(1200, 800);
   
  
   let noiseOffset = random(10000); 
@@ -172,7 +173,6 @@ function draw() {
     }
 
     // ==========================================
-    // STEP 2: Render floating damage text effects
     // Update and display all active damage text in the damage texts array
     // ==========================================
     for (let i = damageTexts.length - 1; i >= 0; i--) {
@@ -364,7 +364,17 @@ function drawHudBox(x,y,player) {
   textSize(14);
   fill(100,50,150);
 
-  let displayAngle = (player === 1) ? (360 - currentAngle) : currentAngle;
+
+  if (player === 1)
+  {
+    displayAngle = 360 - currentAngle;
+  }
+
+  else
+  {
+    displayAngle = currentAngle - 180;
+  }
+
   text(displayAngle + "°", x + 40, y - 5);
 
   textSize(9);
@@ -373,6 +383,9 @@ function drawHudBox(x,y,player) {
   
   pop();
 }
+
+
+
 
 
 function isClicked(x,y,w,h)
@@ -392,14 +405,16 @@ function mousePressed() {
     let btnW = 280;
     let btnH = 50;
 
-    if (isClicked(btnX, height / 2 - 40, btnW, btnH)) {
+    if (isClicked(btnX, height / 2 - 40, btnW, btnH)) 
+    {
       gameMode = 'PVP';
       gameState = 'TERRAIN_SELECT'; 
     } 
 
 
 
-    else if (isClicked(btnX, height / 2 + 30, btnW, btnH)) {
+    else if (isClicked(btnX, height / 2 + 30, btnW, btnH)) 
+    {
       gameMode = 'AI';
       aiDifficulty = 'EASY';
       humanPlayerId = random([1, 2]);
@@ -408,7 +423,8 @@ function mousePressed() {
   
 
 
-    else if (isClicked(btnX, height / 2 + 100, btnW, btnH)) {
+    else if (isClicked(btnX, height / 2 + 100, btnW, btnH)) 
+    {
       gameMode = 'AI';
       aiDifficulty = 'MEDIUM';
       humanPlayerId = random([1, 2]);
@@ -574,11 +590,20 @@ function mouseReleased() //mouse event
 
 function keyPressed() {
   if(gameState === "GAMEOVER" && (key === "r" || key === "R")) {
+    // Reset all game state variables
     player1.currentHp = player1.maxHp;
     player2.currentHp = player2.maxHp;
     currentPlayer = 1;
     activeBirdie = null;
-    gameState = "PLAYING";
+    totalTurns = 0;
+    aiShotCount = 0;
+    isAITurn = false;
+    isObserving = false;
+    camX = 0;
+    winner = "";
+    
+    // Return to menu to restart with new selections
+    gameState = "MENU";
   }
 }
 
@@ -774,7 +799,7 @@ function checkCollision() {
     return;
   }
 
-  // 🌟 Auto-determines who gets hit: ensures absolute fairness for both player and AI
+  // Auto-determines who gets hit: ensures absolute fairness for both player and AI
   let targetPlayer = (currentPlayer === 1) ? player2 : player1;
   
   let bx = activeBirdie.pos.x;
@@ -789,11 +814,17 @@ function checkCollision() {
     let msg = "";
     let isHeadshot = false;
 
-    // --- 🌟 Core Body Part Detection (Head to Feet) ---
+    // --- Core Body Part Detection (Head to Feet) with Distance-based Accuracy ---
     // Character height is 100 pixels with pos.y at center
     // Head is at top ~40px above center, feet at ~50px below center
+    
     // 【Head】: Top section (player's head area)
-    if (by < py - 30) { 
+    // Only count as headshot if ball is within the actual head region
+    let headCenterY = py - 38;  // Head center position
+    let headRadius = 22;        // Head collision radius (tighter detection)
+    let distToHead = dist(bx, by, px, headCenterY);
+    
+    if (distToHead < headRadius) { 
       damage = 3;
       msg = "HEADSHOT -3";
       isHeadshot = true;
@@ -896,32 +927,61 @@ function takeAITurn() {
     let targetYOffset = 0; 
     let aimRoll = random(100); // Roll dice: 0 to 100
 
-    if (aiDifficulty === 'HARD') {
+    if (aiDifficulty === 'HARD') 
+    {
       // Hard difficulty: 20% chance to aim head, 50% chance to aim body, 30% chance to aim legs
-      if (aimRoll < 20) {
+      if (aimRoll < 13) 
+      {
         targetYOffset = -40; // Aim at head
-      } else if (aimRoll < 70) {
+      } 
+      
+      else if (aimRoll < 55) 
+      {
         targetYOffset = -25; // Aim at body
-      } else {
+      } 
+      
+      else 
+      {
         targetYOffset = -10; // Aim at legs
       }
+
     } 
-    else if (aiDifficulty === 'MEDIUM') {
+
+    else if (aiDifficulty === 'MEDIUM') 
+    {
       // Medium difficulty: 10% chance to aim head, 50% chance to aim body, 40% chance to aim legs
-      if (aimRoll < 10) {
+      if (aimRoll < 12) 
+      {
         targetYOffset = -40; // Aim at head
-      } else if (aimRoll < 60) {
+      } 
+      
+      else if (aimRoll < 53)
+      {
         targetYOffset = -25; // Aim at body
-      } else {
+      } 
+      
+      else 
+      {
         targetYOffset = -10; // Aim at legs
       }
+
     } 
-    else {
+    else 
+    {
       // Easy difficulty: 0% chance to aim head, 30% chance to aim body, 70% chance to aim legs or ground (more mistakes)
-      if (aimRoll < 30) {
+      if (aimRoll < 11.5) 
+      {
+        targetYOffset = -40; // Aim at head
+      } 
+      
+      else if (aimRoll < 52.5)
+      {
         targetYOffset = -25; // Aim at body
-      } else {
-        targetYOffset = random(-10, 5); // Aim at legs or even ground (easier to miss)
+      } 
+      
+      else
+      {
+        targetYOffset = -10; // Aim at legs
       }
     }
 
@@ -945,10 +1005,14 @@ function takeAITurn() {
 
     // 
     let idealAngle;
-    if (aiPlayer.pos.x > targetPlayer.pos.x) {
+    if (aiPlayer.pos.x > targetPlayer.pos.x) 
+    {
       // 
       idealAngle = 180 + optimalAngleDeg; 
-    } else {
+    } 
+    
+    else 
+    {
       // 
       idealAngle = 360 - optimalAngleDeg; 
     }
@@ -962,39 +1026,104 @@ function takeAITurn() {
     let angleError = 0;
     
     // 地形难度修正系数 (HARD terrain时减少误差)
-    let terrainModifier = 1.0;
-    if (terrainDifficulty === 'HARD') {
-      terrainModifier = 0.6; // Hard terrain时命中率提高40%
-    } else if (terrainDifficulty === 'MEDIUM') {
-      terrainModifier = 0.8; // Medium terrain时命中率提高20%
+    let terrainModifier = 0.9;
+
+    if (terrainDifficulty === 'HARD') 
+    {
+      terrainModifier = 0.7; // 
+    } 
+    
+    else if (terrainDifficulty === 'MEDIUM') 
+    {
+      terrainModifier = 0.75; 
     }
 
-    if (aiDifficulty === 'EASY') {
-      powerError = random(-20, 20) * terrainModifier;
-      angleError = random(-15, 15) * terrainModifier;
-    } 
-    else if (aiDifficulty === 'MEDIUM') {
-      powerError = random(-10, 10) * terrainModifier;
-      angleError = random(-8, 8) * terrainModifier;
-    } 
-    else if (aiDifficulty === 'HARD') {
-      // 
+    else if (terrainDifficulty === 'EASY') 
+    {
+      terrainModifier = 0.8; 
+    }
 
-      if (aiShotCount === 1) {
+
+    if (aiDifficulty === 'EASY') 
+    {
+      if (aiShotCount === 1) 
+      {
+        // 
+        powerError = random(-11, 11) * terrainModifier; 
+        angleError = random(-8, 8) * terrainModifier;
+      } 
+      
+      else if (aiShotCount === 2) 
+      {
         // 
 
+        powerError = random(-6.9, 6.9) * terrainModifier; 
+        angleError = random(-4.8, 4.9) * terrainModifier;
+      } 
+      
+      else 
+      {
+        // 
+
+        powerError = random(-6.9, 6.9) * terrainModifier; 
+        angleError = random(-4.8, 4.9) * terrainModifier;
+      }
+    } 
+
+
+
+    else if (aiDifficulty === 'MEDIUM') 
+    {
+      if (aiShotCount === 1) 
+      {
+        // 
+        powerError = random(-10, 10) * terrainModifier; 
+        angleError = random(-7, 7) * terrainModifier;
+      } 
+      
+      else if (aiShotCount === 2) 
+      {
+        // 
+
+        powerError = random(-6, 6) * terrainModifier; 
+        angleError = random(-4, 4) * terrainModifier;
+      } 
+      
+      else 
+      {
+        // 
+
+        powerError = random(-6, 6) * terrainModifier; 
+        angleError = random(-4, 4) * terrainModifier;
+      }
+    } 
+
+
+
+    else if (aiDifficulty === 'HARD') 
+    {
+
+      if (aiShotCount === 1) 
+      {
+        // 
         powerError = random(-8, 8) * terrainModifier; 
         angleError = random(-5, 5) * terrainModifier;
-      } else if (aiShotCount === 2) {
+      } 
+      
+      else if (aiShotCount === 2) 
+      {
         // 
 
         powerError = random(-3, 3) * terrainModifier; 
         angleError = random(-2, 2) * terrainModifier;
-      } else {
+      } 
+      
+      else 
+      {
         // 
 
-        powerError = random(-0.5, 0.5) * terrainModifier; 
-        angleError = random(-0.5, 0.5) * terrainModifier;
+        powerError = random(-3, 3) * terrainModifier; 
+        angleError = random(-2.9, 2.9) * terrainModifier;
       }
     }
 
@@ -1160,12 +1289,16 @@ class FloatingText {
   display() {
     push();
     textAlign(CENTER, CENTER);
-    if (this.isHeadshot) {
+    if (this.isHeadshot) 
+    {
       // Headshot: large red text with fade effect (displays special icon)
       fill(255, 0, 0, map(this.life, 0, 60, 0, 255)); // Red color with opacity fade
       textSize(28);
       text("✖ " + this.txt, this.x, this.y);
-    } else {
+    } 
+    
+    else 
+    {
       // Normal hit: smaller white text with fade effect
       fill(255, map(this.life, 0, 60, 0, 255)); // White with opacity fade
       textSize(18);
