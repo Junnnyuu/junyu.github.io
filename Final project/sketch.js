@@ -1,11 +1,14 @@
-/* eslint-disable no-extra-parens */
-/* eslint-disable brace-style */
-// Project Title
-// Your Name
-// Date
-//
-// Extra for Experts:
-// - describe what you did to take this project "above and beyond"
+//Badminton Game
+// Junyu
+// May 27,2026
+
+
+// ==========================================
+// Description:
+// A 2D badminton game with physics-based projectile motion, player health, and AI opponents with varying difficulty levels. 
+// Players take turns aiming and launching a birdie at each other, trying to reduce their opponent's health to zero. 
+// The game features dynamic terrain, a floating damage text effect system, and a simple UI for aiming and power control.
+// ==========================================
 
 let img_player1, img_player2, img_player3, img_Birdie;
 let img_player4, img_player5, img_player6;
@@ -24,9 +27,11 @@ let gravity; // Gravity vector for the birdie's trajectory
 let gameState = "MENU"; // Game state variable to manage different phases of the game (e.g., "PLAY", "GAMEOVER")
 let winner = "";
 
+
 // ==========================================
-// STEP 2: Floating damage text effect system
+// Floating damage text effect system
 // ==========================================
+
 let damageTexts = []; // Array to store all floating damage text effects on screen
 
 let worldWidth = 3000;
@@ -86,12 +91,12 @@ function setup() {
 
   let player1X = random(100, 400);
   let player1Y = terrain[floor(player1X)] - 50; // 50 is half the character height (100/2)
-  player1 = new Character(player1X, player1Y, 100, p1Frames, 1);
+  player1 = new Character(player1X, player1Y, p1Frames, 1);
   
 
   let player2X = random(1300, 1800); 
   let player2Y = terrain[floor(player2X)] - 50; // 50 is half the character height (100/2)
-  player2 = new Character(player2X, player2Y, 100, p2Frames, 2);
+  player2 = new Character(player2X, player2Y, p2Frames, 2);
 
   dragStart = createVector(0,0);
   dragEnd = createVector(0,0);
@@ -148,6 +153,7 @@ function draw() {
     }
     // Constrain camera to world bounds
     targetCamX = constrain(targetCamX, 0, worldWidth - width);
+
     camX = lerp(camX, targetCamX,0.05);
 
     push();
@@ -183,6 +189,7 @@ function draw() {
     for (let i = damageTexts.length - 1; i >= 0; i--) {
       damageTexts[i].update();
       damageTexts[i].display();
+
       if (damageTexts[i].life <= 0) {
         damageTexts.splice(i, 1); // Remove from array after animation completes
       }
@@ -195,6 +202,7 @@ function draw() {
     fill(0);
     textSize(24);
     textAlign(CENTER);
+
     if (currentPlayer === 1) 
     {
       text("Player 1's Turn", width / 2, 50);
@@ -206,7 +214,8 @@ function draw() {
     }
 
     // AI takes its turn if it's an AI game and it's the AI's turn
-    if (gameMode === 'AI' && currentPlayer !== humanPlayerId && activeBirdie === null) {
+    if (gameMode === 'AI' && currentPlayer !== humanPlayerId && activeBirdie === null) 
+    {
       if (!isAITurn) 
       {
         takeAITurn(); 
@@ -216,7 +225,8 @@ function draw() {
     // If observing, show "Observing..." text and skip aiming
     else 
     {
-      if (!(gameMode === 'AI' && currentPlayer !== humanPlayerId) && !isObserving) {
+      if (!(gameMode === 'AI' && currentPlayer !== humanPlayerId) && !isObserving) 
+      {
         handleAiming(); 
       }
     }
@@ -248,7 +258,7 @@ function drawTerrainSelect() {
   background(50, 80, 120);
   textAlign(CENTER, CENTER); 
   
-  
+  // --- Terrain Difficulty Selection ---
   fill(255);
   textSize(40);
   text("SELECT TERRAIN DIFFICULTY", width / 2, 100);
@@ -256,7 +266,7 @@ function drawTerrainSelect() {
   
   textSize(25);
   
-  
+  // Easy button
   fill(terrainDifficulty === 'EASY' ? color(0, 255, 0) : color(200));
   rect(width/2 - 250, 200, 150, 60, 10);
   fill(0); text("EASY", width/2 - 175, 230);
@@ -271,7 +281,7 @@ function drawTerrainSelect() {
   rect(width/2 + 100, 200, 150, 60, 10);
   fill(0); text("HARD", width/2 + 175, 230);
 
-  
+  // Dynamic terrain toggle
   fill(255);
   textSize(30);
   text("DYNAMIC TERRAIN (Randomize each round):", width/2, 350);
@@ -293,8 +303,10 @@ function drawTerrainSelect() {
 
 
 
-function handleAiming() {
-  if(isDragging) {
+function handleAiming() 
+{
+  if(isDragging) 
+  {
     dragEnd.set(mouseX, mouseY); // Update drag end position to current mouse position
 
     let aimVector = p5.Vector.sub(dragStart, dragEnd);
@@ -305,6 +317,7 @@ function handleAiming() {
     {
       aimVector.setMag(maxDrag);
     }
+
     // Map the drag distance to power percentage (0 to 100)
     currentPower = round(map(aimVector.mag(), 0, maxDrag, 0 ,100));
 
@@ -318,6 +331,7 @@ function handleAiming() {
     }
 
     let launchSpeed = map(currentPower, 0, 100, 0, 20);
+
     let VelX = cos(rad) * launchSpeed; // Calculate the X and Y components of the launch velocity based on the angle and power
     let VelY = sin(rad) * launchSpeed;
 
@@ -327,15 +341,18 @@ function handleAiming() {
     stroke(255, 255, 255, 150);
     strokeWeight(4);
     noFill();
-    
+    // Draw trajectory prediction points
     push();
     translate(-camX, 0);
-    for (let i = 1; i <= 18; i++) {
+
+    for (let i = 1; i <= 18; i++) 
+    {
       let t = i * 1; 
       let predX = startX + VelX * t;
       let predY = startY + VelY * t + 0.5 * gravity.y * t * t;
       ellipse(predX, predY, 5, 5);
     }
+
     pop();
     drawHudBox(dragStart.x, dragStart.y - 70,currentPlayer);
   }
@@ -346,7 +363,8 @@ function handleAiming() {
 
 
 
-function drawHudBox(x,y,player) {
+function drawHudBox(x,y,player) 
+{
   push();// Save the current drawing state
   rectMode(CENTER);
   stroke(180);
@@ -442,7 +460,8 @@ function mousePressed() {
     } 
  
 
-    else if (isClicked(btnX, height / 2 + 170, btnW, btnH)) {
+    else if (isClicked(btnX, height / 2 + 170, btnW, btnH)) 
+    {
       gameMode = 'AI';
       aiDifficulty = 'HARD';
       humanPlayerId = random([1, 2]);
@@ -455,7 +474,8 @@ function mousePressed() {
 
 
   // Handle terrain selection clicks
-  if (gameState === 'TERRAIN_SELECT') {
+  if (gameState === 'TERRAIN_SELECT') 
+  {
     
     if (mouseX > width/2 - 250 && mouseX < width/2 - 100 && mouseY > 200 && mouseY < 260) 
     {
@@ -496,7 +516,8 @@ function mousePressed() {
 
 
 
-  if (gameState === 'PLAYING') {
+  if (gameState === 'PLAYING') 
+  {
     // If it's an AI game and it's not the human player's turn, ignore mouse input
     if (gameMode === 'AI' && currentPlayer !== humanPlayerId) 
     {
@@ -505,6 +526,7 @@ function mousePressed() {
 
     let btnX = width - 60;
     let btnY = 60;
+    
     if (dist(mouseX, mouseY, btnX - 180, btnY) < 30 && activeBirdie === null) 
     {
       if (!isObserving) 
@@ -558,17 +580,20 @@ function mousePressed() {
 function mouseReleased() //mouse event
 // eslint-disable-next-line brace-style
 {
-  if(isDragging) {
+  if(isDragging) 
+  {
     isDragging = false;
     let spawnX;
     let spawnY;
   
-    if(currentPlayer === 1){// Set the spawn position of the birdie based on the current player
+    if(currentPlayer === 1)
+    {// Set the spawn position of the birdie based on the current player
       spawnX = player1.pos.x;
       spawnY = player1.pos.y;
     }
 
-    else {
+    else 
+    {
       spawnX = player2.pos.x;
       spawnY = player2.pos.y;
     }
@@ -584,11 +609,13 @@ function mouseReleased() //mouse event
   
     activeBirdie = new Birdie(spawnX, spawnY, launchVel, img_Birdie);
 
-    if(currentPlayer === 1) {
+    if(currentPlayer === 1) 
+    {
       player1.strike();
     }
 
-    else {
+    else 
+    {
       player2.strike();
     }
 
@@ -597,12 +624,13 @@ function mouseReleased() //mouse event
 
 
 
-
+// Reset the game when 'R' is pressed on the game over screen
 function keyPressed() {
-  if(gameState === "GAMEOVER" && (key === "r" || key === "R")) {
+  if(gameState === "GAMEOVER" && (key === "r" || key === "R")) 
+  {
     // Reset all game state variables
-    player1.currentHp = player1.maxHp;
-    player2.currentHp = player2.maxHp;
+    player1.hp = player1.maxHp;
+    player2.hp = player2.maxHp;
     currentPlayer = 1;
     activeBirdie = null;
     totalTurns = 0;
@@ -623,7 +651,8 @@ function keyPressed() {
 
 class Character //class for the player characters
 {
-  constructor(x,y,maxHp,framsArray,side) {
+  constructor(x,y,framsArray,side) 
+  {
     this.pos = createVector(x,y);
     this.maxHp = 15; // Set total HP to 15 (overrides the maxHp parameter)
     this.currentHp = 15; // Initial HP set to 15
@@ -645,13 +674,15 @@ class Character //class for the player characters
   }
 
 
-  display() {
+  display() 
+  {
     push();
     imageMode(CENTER);
     let currentImg = this.frames[this.currentFrame]; // Get the current frame image based on the character's state
     
     // 🌟 Add flash effect when hit
-    if (this.hitFlashTimer > 0) {
+    if (this.hitFlashTimer > 0) 
+    {
       // Create white flash overlay for hit feedback
       tint(255, 255, 255, 150);
     }
@@ -660,7 +691,8 @@ class Character //class for the player characters
     pop();
 
     // 🌟 Draw hit location indicator (colored circle at hit body part)
-    if (this.hitFlashTimer > 0) {
+    if (this.hitFlashTimer > 0) 
+    {
       this.drawHitIndicator();
     }
 
@@ -668,13 +700,15 @@ class Character //class for the player characters
   }
 
 
-  strike() {
+  strike() 
+  {
     this.isStriking = true;
     this.currentFrame = 1;
   }
 
   // 🌟 Record hit for visual feedback
-  recordHit(bodyPart) {
+  recordHit(bodyPart) 
+  {
     this.hitFlashTimer = this.hitFlashDuration;
     this.lastHitBodyPart = bodyPart; // "HEAD", "BODY", or "LEGS"
   }
@@ -682,46 +716,61 @@ class Character //class for the player characters
   // 🌟 Draw visual indicator of hit body part
   drawHitIndicator() {
     push();
+
     let indicatorY = this.pos.y;
     let indicatorColor = color(255, 200, 100); // Default color
     let indicatorSize = 30;
 
     // Determine color and position based on hit body part
-    if (this.lastHitBodyPart === "HEAD") {
+    if (this.lastHitBodyPart === "HEAD") 
+    {
       indicatorY = this.pos.y - 40; // Head position
+
       indicatorColor = color(255, 0, 0, 200); // Red for headshot
       indicatorSize = 40;
     } 
-    else if (this.lastHitBodyPart === "BODY") {
+
+    else if (this.lastHitBodyPart === "BODY") 
+    {
       indicatorY = this.pos.y - 10; // Body position
       indicatorColor = color(255, 150, 0, 200); // Orange for body hit
+
       indicatorSize = 35;
     } 
-    else if (this.lastHitBodyPart === "LEGS") {
+
+    else if (this.lastHitBodyPart === "LEGS") 
+    {
       indicatorY = this.pos.y + 30; // Legs position
       indicatorColor = color(255, 200, 0, 200); // Yellow for leg hit
+
       indicatorSize = 30;
     }
 
     // Draw pulsing circle at hit location
     let pulseSize = indicatorSize * (1 + 0.5 * sin(frameCount * 0.3));
     fill(indicatorColor);
+
     noStroke();
     circle(this.pos.x, indicatorY, pulseSize);
     
     // Draw outer ring
     noFill();
     stroke(indicatorColor);
+
     strokeWeight(2);
     circle(this.pos.x, indicatorY, pulseSize + 10);
     
     pop();
   }
 
-  updateAnimation() {
-    if(this.isStriking) {
-      if(frameCount % 10 === 0) {
+  updateAnimation() 
+  {
+    if(this.isStriking) 
+    {
+      if(frameCount % 10 === 0) 
+      {
         this.currentFrame ++;
+
         if(this.currentFrame >= this.frames.length) // Loop back to the first frame after the animation completes
         {
           this.currentFrame = 0;
@@ -731,22 +780,24 @@ class Character //class for the player characters
     }
 
     // 🌟 Update hit flash timer
-    if (this.hitFlashTimer > 0) {
+    if (this.hitFlashTimer > 0) 
+    {
       this.hitFlashTimer--;
     }
   }
 
   
 
-
-  drawHealthBar() {
+  
+  drawHealthBar() 
+  {
     push();
     rectMode(CORNER);
     fill(230,50,50);
     rect(this.pos.x - 40, this.pos.y - 75,80,8,4);
 
     fill(50,230,100);
-    let healthWidth = map(this.currentHp, 0 , this.maxHp, 0 , 80); // Map the current health to the width of the health bar
+    let healthWidth = map(this.hp, 0 , this.maxHp, 0 , 80); // Map the current health to the width of the health bar
     rect(this.pos.x - 40, this.pos.y - 75, healthWidth, 8,4);
     pop();
   }
@@ -757,9 +808,11 @@ class Character //class for the player characters
 
 
 
-class Birdie {
+class Birdie 
+{
 
-  constructor(x,y,velocity,img) {
+  constructor(x,y,velocity,img) 
+  {
     this.pos = createVector(x,y);
     this.vel = velocity;
     this.img = img;
@@ -767,12 +820,16 @@ class Birdie {
     this.height = 20;
   }
 
-  update() {
+  // Update the birdie's position based on its velocity and apply gravity
+  update() 
+  {
     this.vel.add(gravity);
     this.pos.add(this.vel);
   }
 
-  display() {
+
+  display() 
+  {
     push();
 
     translate(this.pos.x, this.pos.y);
@@ -788,22 +845,28 @@ class Birdie {
 
 
 // ==========================================
-// STEP 3: Completely Fair Multi-Part Collision & Damage System
 // Ensures absolute fairness: same detection logic for both player and AI
 // ==========================================
-function checkCollision() {
+function checkCollision() 
+{
   if (activeBirdie === null) return;
 
   let checkX = floor(activeBirdie.pos.x);
 
   // Check if birdie hits the terrain (ground)
-  if (checkX >= 0 && checkX < worldWidth) {
-    if (activeBirdie.pos.y >= terrain[checkX]) {
+  if (checkX >= 0 && checkX < worldWidth) 
+  {
+    if (activeBirdie.pos.y >= terrain[checkX]) 
+    {
       activeBirdie = null;
       switchTurn();
       return;
     }
-  } else {
+
+  } 
+  
+  else 
+  {
     activeBirdie = null;
     switchTurn();
     return;
@@ -818,7 +881,8 @@ function checkCollision() {
   let py = targetPlayer.pos.y; // Player's foot position (ground level Y coordinate)
 
   // Judge if birdie enters the player's X-axis range (distance < 35 pixels for more accurate hit detection)
-  if (abs(bx - px) < 35) {
+  if (abs(bx - px) < 35) 
+  {
     
     let damage = 0;
     let msg = "";
@@ -830,31 +894,41 @@ function checkCollision() {
     // Only count as headshot if ball is within the actual head region
     let headCenterY = py - 38;  // Head center position
     let headRadius = 22;        // Head collision radius (tighter detection)
+
     let distToHead = dist(bx, by, px, headCenterY);
     
-    if (distToHead < headRadius) { 
+
+    if (distToHead < headRadius) 
+    { 
       damage = 3;
       msg = "HEADSHOT -3";
       isHeadshot = true;
     } 
-    // 【Hand/Body】: Middle section (torso and arms)
-    else if (by >= py - 30 && by < py + 20) { 
+    
+    // Hand/Body: Middle section (torso and arms)
+    else if (by >= py - 30 && by < py + 20) 
+    { 
       damage = 2;
       msg = "HIT BODY -2";
     } 
+
     // 【Feet】: Lower section (legs and feet)
-    else if (by >= py + 20 && by <= py + 55) { 
+    else if (by >= py + 20 && by <= py + 55) 
+    { 
       damage = 1;
       msg = "HIT LEGS -1";
     }
 
-    // --- 🌟 Deduct Health & Display Damage Text ---
-    if (damage > 0) {
+    // Deduct Health & Display Damage Text ---
+    if (damage > 0) 
+      {
       targetPlayer.hp -= damage; // Deduct corresponding health
+
       targetPlayer.currentHp -= damage; // Update currentHp as well
       
-      // 🌟 Record hit for visual feedback on target player
+      //Record hit for visual feedback on target player
       let bodyPartHit = isHeadshot ? "HEAD" : (by >= py - 30 && by < py + 20) ? "BODY" : "LEGS";
+
       targetPlayer.recordHit(bodyPartHit);
       
       // Generate floating damage text at hit location!
@@ -863,14 +937,23 @@ function checkCollision() {
       activeBirdie = null; // Birdie disappears
       
       // Check if the hit player's health is zero
-      if (targetPlayer.hp <= 0) {
+      if (targetPlayer.hp <= 0) 
+      {
         gameState = "GAMEOVER";
-        if (currentPlayer === 1) {
+        if (currentPlayer === 1) 
+        {
           winner = "Player 1 ";
-        } else {
+        } 
+        
+        else
+        {
           winner = (gameMode === 'AI') ? "AI " : "Player 2 ";
         }
-      } else {
+
+      } 
+      
+      else 
+      {
         // If not defeated, switch turns
         switchTurn();
       }
@@ -885,10 +968,13 @@ function checkCollision() {
 
 function switchTurn() // Switch the current player after a turn is completed
 {
-  if(currentPlayer  === 1) {
+  if(currentPlayer  === 1) 
+  {
     currentPlayer = 2;
   }
-  else {
+
+  else 
+  {
     currentPlayer = 1;
   }
 
@@ -896,7 +982,8 @@ function switchTurn() // Switch the current player after a turn is completed
   totalTurns++; 
 
   
-  if (isDynamicTerrain && totalTurns % 2 === 0) {
+  if (isDynamicTerrain && totalTurns % 2 === 0) 
+  {
     
     generateTerrain(); 
     
@@ -912,7 +999,8 @@ function switchTurn() // Switch the current player after a turn is completed
 
 
 
-function takeAITurn() {
+function takeAITurn() 
+{
   isAITurn = true; 
   aiShotCount++; 
 
@@ -920,15 +1008,14 @@ function takeAITurn() {
     let aiPlayer = (humanPlayerId === 1) ? player2 : player1;
     let targetPlayer = (humanPlayerId === 1) ? player1 : player2;
 
-    // ==========================================
-    // STEP 1: AI Aiming Logic with Height Offset
+   
     // Calculate physical data and add target Y offset (different difficulties target different body parts)
-    // ==========================================
+
     let dx = abs(targetPlayer.pos.x - aiPlayer.pos.x);
     
-    // ==========================================
+
     // AI Aiming Probability Distribution (Optimized Version)
-    // ==========================================
+
     let targetYOffset = 0; 
     let aimRoll = random(100); // Roll dice: 0 to 100
 
@@ -1088,7 +1175,6 @@ function takeAITurn() {
       
       else if (aiShotCount === 2) 
       {
-        // 
 
         powerError = random(-6, 6) * terrainModifier; 
         angleError = random(-4, 4) * terrainModifier;
@@ -1096,7 +1182,6 @@ function takeAITurn() {
       
       else 
       {
-        // 
 
         powerError = random(-6, 6) * terrainModifier; 
         angleError = random(-4, 4) * terrainModifier;
@@ -1110,23 +1195,18 @@ function takeAITurn() {
 
       if (aiShotCount === 1) 
       {
-        // 
         powerError = random(-8, 8) * terrainModifier; 
         angleError = random(-5, 5) * terrainModifier;
       } 
       
       else if (aiShotCount === 2) 
       {
-        // 
-
         powerError = random(-3, 3) * terrainModifier; 
         angleError = random(-2, 2) * terrainModifier;
       } 
       
       else 
       {
-        // 
-
         powerError = random(-3, 3) * terrainModifier; 
         angleError = random(-2.9, 2.9) * terrainModifier;
       }
@@ -1158,11 +1238,8 @@ function takeAITurn() {
 
 
 
-
-
-
-
-function drawMenu() {
+function drawMenu() 
+{
   push();
   background(40, 45, 60); 
   
@@ -1172,8 +1249,10 @@ function drawMenu() {
   fill(255);
   text("BADMINTON BATTLE", width / 2, height / 3 - 50);
 
+  // Draw buttons for game mode selection
   drawButton("PVP (Double play)", width / 2, height / 2 - 40, 280, 50);
   drawButton("YOU VS AI (Easy mode)", width / 2, height / 2 + 30, 280, 50);
+
   drawButton("YOU VS AI (Medium mode)", width / 2, height / 2 + 100, 280, 50);
   drawButton("YOU VS AI (hard mode)", width / 2, height / 2 + 170, 280, 50);
   pop();
@@ -1183,13 +1262,18 @@ function drawMenu() {
 
 
 
-function drawButton(label, x, y, w, h) {
+function drawButton(label, x, y, w, h) 
+{
   rectMode(CENTER);
   
   // Change button color on hover
-  if (mouseX > x - w/2 && mouseX < x + w/2 && mouseY > y - h/2 && mouseY < y + h/2) {
+  if (mouseX > x - w/2 && mouseX < x + w/2 && mouseY > y - h/2 && mouseY < y + h/2) 
+  {
     fill(255, 200, 0); 
-  } else {
+  } 
+  
+  else 
+  {
     fill(230);         
   }
   
@@ -1206,7 +1290,8 @@ function drawButton(label, x, y, w, h) {
 
 
 
-function drawLookButton() {
+function drawLookButton() 
+{
 
   if (activeBirdie !== null) return;
 
@@ -1238,46 +1323,45 @@ function drawLookButton() {
 }
 
 
-function generateTerrain() {
+function generateTerrain() 
+{
   let noiseOffset = random(10000); // Randomize noise offset for different terrain each time
   let noiseScale = 0.003; 
 
-  for(let x = 0; x < worldWidth; x++) { // Loop through each x-coordinate of the world
+  for(let x = 0; x < worldWidth; x++) 
+  { // Loop through each x-coordinate of the world
     let n = noise(x * noiseScale + noiseOffset);
     
-    //
+    // Map noise value to terrain height based on selected difficulty
     if (terrainDifficulty === 'EASY') 
     {
-
-      // 
       terrain[x] = map(n, 0, 1, 400, 600);
     } 
 
     else if (terrainDifficulty === 'MEDIUM') 
     {
-
-      //
       terrain[x] = map(n, 0.15, 0.85, 250, 550);
     } 
 
     else if (terrainDifficulty === 'HARD') 
-      {
-      // 
+    {
+
       terrain[x] = map(n, 0.25, 0.75, 100, 580);
     }
     
-    // 
     terrain[x] = constrain(terrain[x], 50, 580);
   }
 }
 
 
 
-// ==========================================
+
 // Handles displaying damage numbers with fade animation and upward movement
-// ==========================================
-class FloatingText {
-  constructor(txt, x, y, isHeadshot) {
+
+class FloatingText 
+{
+  constructor(txt, x, y, isHeadshot) 
+  {
     this.txt = txt;
     this.x = x;
     this.y = y;
@@ -1285,14 +1369,17 @@ class FloatingText {
     this.isHeadshot = isHeadshot;
   }
   
-  update() {
+  update() 
+  {
     this.y -= 1;  // Float text upward slowly
     this.life--;
   }
   
-  display() {
+  display() 
+  {
     push();
     textAlign(CENTER, CENTER);
+
     if (this.isHeadshot) 
     {
       // Headshot: large red text with fade effect (displays special icon)
@@ -1308,6 +1395,7 @@ class FloatingText {
       textSize(18);
       text(this.txt, this.x, this.y);
     }
+
     pop();
   }
 }
