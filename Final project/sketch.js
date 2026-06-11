@@ -1335,21 +1335,22 @@ function generateTerrain()
     // Map noise value to terrain height based on selected difficulty
     if (terrainDifficulty === 'EASY') 
     {
-      terrain[x] = map(n, 0, 1, 400, 600);
+
+      terrain[x] = map(n, 0, 1, 300, 400);
     } 
 
     else if (terrainDifficulty === 'MEDIUM') 
     {
-      terrain[x] = map(n, 0.15, 0.85, 250, 550);
+      terrain[x] = map(n, 0.15, 0.85, 100, 450);
     } 
 
     else if (terrainDifficulty === 'HARD') 
     {
 
-      terrain[x] = map(n, 0.25, 0.75, 100, 580);
+      terrain[x] = map(n, 0.25, 0.75, 50, 500);
     }
     
-    terrain[x] = constrain(terrain[x], 50, 580);
+    terrain[x] = constrain(terrain[x], 50, 500);
   }
 }
 
