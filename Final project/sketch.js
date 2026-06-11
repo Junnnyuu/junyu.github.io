@@ -12,7 +12,7 @@ let img_player4, img_player5, img_player6;
 
 let player1,player2;
 
-let isDragging = false;
+let isDragging = false; // Track if the player is currently dragging to aim
 let dragStart, dragEnd;
 let currentAngle = 0;
 let currentPower = 0;
@@ -38,10 +38,10 @@ let isObserving = false;
 let camX = 0;
 
 
-let gameMode = "AI";
+let gameMode = "AI"; //ai
 
 let aiShotCount = 0;
-let aiDifficulty = "MEDIUM";
+let aiDifficulty = "MEDIUM"; // Default AI difficulty
 let isAITurn = false;
 
 let totalTurns = 0;
@@ -65,7 +65,7 @@ function setup() {
   createCanvas(1200, 800);
   
  
-  let noiseOffset = random(10000); 
+  let noiseOffset = random(10000); // Randomize noise offset for different terrain each game
   
 
   let noiseScale = 0.003; 
@@ -75,7 +75,7 @@ function setup() {
     let n = noise(x * noiseScale + noiseOffset);
     
 
-    terrain[x] = map(n, 0.25, 0.75, 100, 480);
+    terrain[x] = map(n, 0.25, 0.75, 100, 480);// Map noise value to a reasonable terrain height range (100 to 480)
     
    
     terrain[x] = constrain(terrain[x], 50, 480);
@@ -105,16 +105,19 @@ function setup() {
 
 
 function draw() {
+  // --- Main game loop ---
   if (gameState === 'MENU') 
   {
     drawMenu(); 
   }
 
+  // --- Terrain selection screen ---
   else if (gameState === 'TERRAIN_SELECT') 
   {
     drawTerrainSelect(); 
   }
 
+  // --- Main gameplay loop ---
   else if(gameState === "PLAYING")
   {
     background(135,206,235);
@@ -123,13 +126,14 @@ function draw() {
 
 
 
+    // Camera follows the active birdie if it exists
     if(activeBirdie !== null)
     {
       targetCamX = activeBirdie.pos.x - width/2;
     }
 
 
-    else if(isObserving) 
+    else if(isObserving) // If observing, focus on the opponent's position
     {
       let opponent = (currentPlayer === 1) ? player2 : player1;
 
@@ -140,8 +144,9 @@ function draw() {
     {
       let activePlayer = (currentPlayer === 1) ? player1 : player2;
 
-      targetCamX = activePlayer.pos.x - width/2;
+      targetCamX = activePlayer.pos.x - width/2; // Center the camera on the active player
     }
+    // Constrain camera to world bounds
     targetCamX = constrain(targetCamX, 0, worldWidth - width);
     camX = lerp(camX, targetCamX,0.05);
 
@@ -200,7 +205,7 @@ function draw() {
       text("Player 2's Turn", width / 2, 50);
     }
 
-    // 
+    // AI takes its turn if it's an AI game and it's the AI's turn
     if (gameMode === 'AI' && currentPlayer !== humanPlayerId && activeBirdie === null) {
       if (!isAITurn) 
       {
@@ -208,6 +213,7 @@ function draw() {
       }
     } 
     
+    // If observing, show "Observing..." text and skip aiming
     else 
     {
       if (!(gameMode === 'AI' && currentPlayer !== humanPlayerId) && !isObserving) {
@@ -217,6 +223,8 @@ function draw() {
     
     checkCollision();
   } 
+
+  // --- Game over screen ---
   else if (gameState === "GAMEOVER") 
   {
     background(30);
@@ -238,32 +246,32 @@ function draw() {
 
 function drawTerrainSelect() {
   background(50, 80, 120);
-  textAlign(CENTER, CENTER);
+  textAlign(CENTER, CENTER); 
   
-  // 
+  
   fill(255);
   textSize(40);
   text("SELECT TERRAIN DIFFICULTY", width / 2, 100);
 
-  // 
+  
   textSize(25);
   
-  // 
+  
   fill(terrainDifficulty === 'EASY' ? color(0, 255, 0) : color(200));
   rect(width/2 - 250, 200, 150, 60, 10);
   fill(0); text("EASY", width/2 - 175, 230);
 
-  // 
+  
   fill(terrainDifficulty === 'MEDIUM' ? color(255, 200, 0) : color(200));
   rect(width/2 - 75, 200, 150, 60, 10);
   fill(0); text("MEDIUM", width/2, 230);
 
-  // 
+  
   fill(terrainDifficulty === 'HARD' ? color(255, 0, 0) : color(200));
   rect(width/2 + 100, 200, 150, 60, 10);
   fill(0); text("HARD", width/2 + 175, 230);
 
-  // 
+  
   fill(255);
   textSize(30);
   text("DYNAMIC TERRAIN (Randomize each round):", width/2, 350);
@@ -273,7 +281,7 @@ function drawTerrainSelect() {
   fill(0);
   text(isDynamicTerrain ? "ON" : "OFF", width/2, 410);
 
-  // -
+  // Start game button
   fill(100, 200, 255);
   rect(width/2 - 125, 500, 250, 70, 15);
   fill(0);
@@ -287,7 +295,7 @@ function drawTerrainSelect() {
 
 function handleAiming() {
   if(isDragging) {
-    dragEnd.set(mouseX, mouseY);
+    dragEnd.set(mouseX, mouseY); // Update drag end position to current mouse position
 
     let aimVector = p5.Vector.sub(dragStart, dragEnd);
 
@@ -297,7 +305,7 @@ function handleAiming() {
     {
       aimVector.setMag(maxDrag);
     }
-
+    // Map the drag distance to power percentage (0 to 100)
     currentPower = round(map(aimVector.mag(), 0, maxDrag, 0 ,100));
 
     let rad = atan2(aimVector.y, aimVector.x);
@@ -310,11 +318,11 @@ function handleAiming() {
     }
 
     let launchSpeed = map(currentPower, 0, 100, 0, 20);
-    let VelX = cos(rad) * launchSpeed;
+    let VelX = cos(rad) * launchSpeed; // Calculate the X and Y components of the launch velocity based on the angle and power
     let VelY = sin(rad) * launchSpeed;
 
     let startX = currentPlayer === 1 ? player1.pos.x : player2.pos.x;
-    let startY = (currentPlayer === 1 ? player1.pos.y : player2.pos.y) - 30;
+    let startY = (currentPlayer === 1 ? player1.pos.y : player2.pos.y) - 30;// Start the trajectory prediction from the character's hand position (30 pixels above center)
 
     stroke(255, 255, 255, 150);
     strokeWeight(4);
@@ -364,7 +372,7 @@ function drawHudBox(x,y,player) {
   textSize(14);
   fill(100,50,150);
 
-
+  // Display angle in a more intuitive way based on player side
   if (player === 1)
   {
     displayAngle = 360 - currentAngle;
@@ -390,6 +398,7 @@ function drawHudBox(x,y,player) {
 
 function isClicked(x,y,w,h)
 {
+  // Check if the mouse click is within the rectangle defined by (x, y, w, h)
   return (mouseX > x - w/2 && mouseX < x + w/2 && mouseY > y - h/2 && mouseY < y + h/2);
 }
 
@@ -405,6 +414,7 @@ function mousePressed() {
     let btnW = 280;
     let btnH = 50;
 
+    // Check if "Player vs Player" button is clicked
     if (isClicked(btnX, height / 2 - 40, btnW, btnH)) 
     {
       gameMode = 'PVP';
@@ -422,7 +432,7 @@ function mousePressed() {
     } 
   
 
-
+    // Check if "Player vs AI (Medium)" button is clicked
     else if (isClicked(btnX, height / 2 + 100, btnW, btnH)) 
     {
       gameMode = 'AI';
@@ -444,12 +454,12 @@ function mousePressed() {
   }
 
 
-
+  // Handle terrain selection clicks
   if (gameState === 'TERRAIN_SELECT') {
     
     if (mouseX > width/2 - 250 && mouseX < width/2 - 100 && mouseY > 200 && mouseY < 260) 
     {
-      terrainDifficulty = 'EASY';
+      terrainDifficulty = 'EASY'; // Set terrain difficulty to EASY
     }
     //
     else if (mouseX > width/2 - 75 && mouseX < width/2 + 75 && mouseY > 200 && mouseY < 260) 
@@ -465,19 +475,19 @@ function mousePressed() {
     // 
     else if (mouseX > width/2 - 75 && mouseX < width/2 + 75 && mouseY > 380 && mouseY < 440) 
     {
-      isDynamicTerrain = !isDynamicTerrain; // 
+      isDynamicTerrain = !isDynamicTerrain; // Toggle dynamic terrain on/off
     }
     
     // 
     else if (mouseX > width/2 - 125 && mouseX < width/2 + 125 && mouseY > 500 && mouseY < 570) 
     {
-      generateTerrain(); // 
+      generateTerrain(); // Generate terrain heights based on the selected difficulty
       
-      // 
+      // Reposition players on the new terrain
       player1.pos.y = terrain[floor(player1.pos.x)] - 50;
       player2.pos.y = terrain[floor(player2.pos.x)] - 50;
       
-      gameState = 'PLAYING'; //
+      gameState = 'PLAYING'; // Start the game after terrain selection
     }
     return; 
   }
@@ -487,7 +497,7 @@ function mousePressed() {
 
 
   if (gameState === 'PLAYING') {
-
+    // If it's an AI game and it's not the human player's turn, ignore mouse input
     if (gameMode === 'AI' && currentPlayer !== humanPlayerId) 
     {
       return;
@@ -501,7 +511,7 @@ function mousePressed() {
       {
         isObserving = true; 
         
-        
+        // Automatically exit observing mode after 3 seconds
         setTimeout(() => {
           isObserving = false; 
         }, 3000);
@@ -509,7 +519,7 @@ function mousePressed() {
       return; 
     }
 
-    
+    // If currently observing, ignore aiming input
     if (isObserving) 
     {
       return;
@@ -814,10 +824,8 @@ function checkCollision() {
     let msg = "";
     let isHeadshot = false;
 
-    // --- Core Body Part Detection (Head to Feet) with Distance-based Accuracy ---
-    // Character height is 100 pixels with pos.y at center
-    // Head is at top ~40px above center, feet at ~50px below center
     
+
     // 【Head】: Top section (player's head area)
     // Only count as headshot if ball is within the actual head region
     let headCenterY = py - 38;  // Head center position
@@ -885,20 +893,18 @@ function switchTurn() // Switch the current player after a turn is completed
   }
 
 
-  totalTurns++; //
+  totalTurns++; 
 
-  // 
+  
   if (isDynamicTerrain && totalTurns % 2 === 0) {
     
-    //
     generateTerrain(); 
     
-    //
-    // 
+    // Reposition players on the new terrain
     player1.pos.y = terrain[floor(player1.pos.x)] - 50;
     player2.pos.y = terrain[floor(player2.pos.x)] - 50;
     
-    // 
+    
   }
 }
 
@@ -922,7 +928,6 @@ function takeAITurn() {
     
     // ==========================================
     // AI Aiming Probability Distribution (Optimized Version)
-    // Represents AI's "intention" to hit different body parts, but actual result depends on physics errors
     // ==========================================
     let targetYOffset = 0; 
     let aimRoll = random(100); // Roll dice: 0 to 100
@@ -992,7 +997,7 @@ function takeAITurn() {
     let yUp = -dy; 
 
     // ==========================================
-    // 
+    // Physics Calculation for Optimal Angle & Power
     // ==========================================
     let dist = sqrt(dx * dx + yUp * yUp);
     
@@ -1020,17 +1025,17 @@ function takeAITurn() {
     let idealPower = map(perfectSpeed, 0, 25, 0, 100); 
 
     // ==========================================
-    // 3. 
+    // AI Error Simulation with Terrain Difficulty Modifier
     // ==========================================
     let powerError = 0;
     let angleError = 0;
     
-    // 地形难度修正系数 (HARD terrain时减少误差)
+    // Terrain difficulty modifier
     let terrainModifier = 0.9;
 
     if (terrainDifficulty === 'HARD') 
     {
-      terrainModifier = 0.7; // 
+      terrainModifier = 0.7; // Hard terrain reduces AI accuracy more
     } 
     
     else if (terrainDifficulty === 'MEDIUM') 
@@ -1133,7 +1138,7 @@ function takeAITurn() {
     let finalAngle = idealAngle + angleError; 
 
     // ==========================================
-    // 4. 
+    // Launch the birdie with the calculated angle and power
     // ==========================================
     let launchSpeed = map(finalPower, 0, 100, 0, 25);
     let rad = radians(finalAngle);
@@ -1181,7 +1186,7 @@ function drawMenu() {
 function drawButton(label, x, y, w, h) {
   rectMode(CENTER);
   
-  
+  // Change button color on hover
   if (mouseX > x - w/2 && mouseX < x + w/2 && mouseY > y - h/2 && mouseY < y + h/2) {
     fill(255, 200, 0); 
   } else {
@@ -1216,12 +1221,12 @@ function drawLookButton() {
 
   let isHover = dist(mouseX, mouseY, btnX - 180, btnY) < btnSize / 2;
 
-  fill(isHover ? color(200, 200, 250) : color(255, 255, 255, 220));
+  fill(isHover ? color(200, 200, 250) : color(255, 255, 255, 220));// Change color on hover
   
   stroke(100, 50, 150);
   strokeWeight(3);
   rectMode(CENTER);
-  circle(btnX - 180, btnY, btnSize); 
+  circle(btnX - 180, btnY, btnSize); // Look button (circle)
   
 
   noStroke();
@@ -1234,10 +1239,10 @@ function drawLookButton() {
 
 
 function generateTerrain() {
-  let noiseOffset = random(10000); //
+  let noiseOffset = random(10000); // Randomize noise offset for different terrain each time
   let noiseScale = 0.003; 
 
-  for(let x = 0; x < worldWidth; x++) { // 
+  for(let x = 0; x < worldWidth; x++) { // Loop through each x-coordinate of the world
     let n = noise(x * noiseScale + noiseOffset);
     
     //
@@ -1269,7 +1274,6 @@ function generateTerrain() {
 
 
 // ==========================================
-// STEP 2: Floating Text Effect Class
 // Handles displaying damage numbers with fade animation and upward movement
 // ==========================================
 class FloatingText {
