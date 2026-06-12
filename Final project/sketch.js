@@ -1326,7 +1326,7 @@ function drawLookButton()
 function generateTerrain() 
 {
   let noiseOffset = random(10000); // Randomize noise offset for different terrain each time
-  let noiseScale = 0.003; 
+  let noiseScale = 0.0065; 
 
   for(let x = 0; x < worldWidth; x++) 
   { // Loop through each x-coordinate of the world
@@ -1341,13 +1341,12 @@ function generateTerrain()
 
     else if (terrainDifficulty === 'MEDIUM') 
     {
-      terrain[x] = map(n, 0.15, 0.85, 100, 450);
+      terrain[x] = map(n, 0.15, 0.4,170, 300);
     } 
 
     else if (terrainDifficulty === 'HARD') 
     {
-
-      terrain[x] = map(n, 0.25, 0.75, 50, 500);
+      terrain[x] = map(n, 0.15, 0.4,170, 400);
     }
     
     terrain[x] = constrain(terrain[x], 50, 500);
